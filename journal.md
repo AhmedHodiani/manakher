@@ -36,6 +36,23 @@ It contains a short and clear to-do list of milestones.
   - Next.js 16 renamed `middleware.ts` to `proxy.ts` with `export const proxy` instead of `export function middleware`. Caught this by reading the bundled docs at `node_modules/next/dist/docs/`.
   - `params` and `searchParams` are now async Promises in Next.js 16 -- must be awaited.
 
+#### Test Cases (for user verification)
+
+| # | Test Case | Steps | Expected Result |
+|---|-----------|-------|-----------------|
+| 1 | **PocketBase running** | Run `./pocketbase serve` from `/backend` | API healthy at `http://127.0.0.1:8090/api/health` |
+| 2 | **Frontend starts** | Run `npm run dev` from `/frontend` | App loads at `http://localhost:3000` |
+| 3 | **Unauthenticated redirect** | Open `http://localhost:3000` without logging in | Redirected to `/login` |
+| 4 | **Protected route guard** | Navigate directly to `/dashboard/admin` without logging in | Redirected to `/login` |
+| 5 | **Login with wrong credentials** | On `/login`, enter `wrong@email.com` / `badpass` and submit | Error message appears: "Invalid email or password" (or similar) |
+| 6 | **Login as admin** | On `/login`, enter `admin@school.edu` / `Admin@12345` | Redirected to `/dashboard/admin`, header shows "School Admin" and role badge "admin" |
+| 7 | **Login as teacher** | On `/login`, enter `teacher@school.edu` / `Teacher@12345` | Redirected to `/dashboard/teacher`, header shows "Test Teacher" and role badge "teacher" |
+| 8 | **Login as student** | On `/login`, enter `student@school.edu` / `Student@12345` | Redirected to `/dashboard/student`, header shows "Test Student" and role badge "student" |
+| 9 | **Sign out** | Click "Sign out" button in dashboard header | Redirected back to `/login`, session cleared |
+| 10 | **Session persistence** | Log in, close the tab, open `http://localhost:3000` again | Auto-redirected to the correct role dashboard (not back to login) |
+| 11 | **PocketBase admin panel** | Open `http://127.0.0.1:8090/_/` in browser | PocketBase admin UI loads, can login with `admin@manakher.com` / `Admin@12345` |
+| 12 | **Users visible in PB admin** | In PB admin panel, go to `users` collection | All 3 seeded users visible with correct roles |
+
 ### [NOT_STARTED] Milestone 2: support 2 languanges arabic and english & RTL Architecture (Arabic First)
 - **Internationalization (i18n) Setup**: Configure the Next.js foundation for seamless switching between Arabic (Default/Primary) and English.
 - **RTL Layout Engine**: Implement a robust Right-to-Left (RTL) CSS architecture that applies globally when Arabic is active.
