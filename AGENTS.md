@@ -34,3 +34,8 @@ Every time you make an iteration (write code, debug, set up infrastructure, etc.
 - What you struggled with or broke (what you "fucked up"), so the next agent has full context and doesn't repeat your mistakes.
 
 Never finish your task without updating the iteration history in `journal.md`. Keep your logs clear and concise.
+
+
+---
+
+make sure you commit stuff as you go
