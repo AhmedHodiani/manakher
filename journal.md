@@ -221,12 +221,30 @@ It contains a short and clear to-do list of milestones.
 - **Struggles / watch out:**
   - MCP auto-cancel on parallel calls is a cosmetic SDK error — the record is still written. Retrying causes a "Value must be unique" error confirming the first write succeeded.
 
-### [INPROGRESS] Milestone 5: Teacher Setup & Dashboard
+### [HANDOFF] Milestone 5: Teacher Setup & Dashboard
 - View assigned class-sections and students.
 - Post learning materials (text, docs, videos, links, images) for a class or section(s). *Note: cannot assign the same material/homework across different classes (صفوف) at the same time, must be done separately. Can be done together for sections of the same class.*
 - Assign homework for full class-section(s). Submission types: online or on-site.
 - View and evaluate student submissions.
 - Post news and announcements for all assigned classes, a specific class, or a specific section. (Admin can also post global announcements from their end).
+
+#### Iteration Log
+
+**Iteration 2** (2026-03-26) — Rich text editor for teacher content:
+- **What was done:**
+  - Installed Tiptap v3 (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/extension-image`, `@tiptap/extension-link`, `@tiptap/extension-text-align`, `@tiptap/extension-underline`) and DOMPurify.
+  - Created `media` PocketBase collection (`pbc_2708086759`) with a `file` field and `uploaded_by` relation. Used for inline image uploads from the editor. Auth-gated (only authenticated users can upload).
+  - Created `src/components/ui/rich-editor.tsx` — reusable Tiptap editor with full toolbar: bold, italic, underline, H1–H3, bullet/ordered lists, text alignment (L/C/R/J), link insertion (prompt dialog), image upload (uploads to `media` collection → gets PocketBase URL → embeds as `<img>`). Editor syncs with parent value prop (for edit mode). Styled to match design system (rounded-xl border, focus ring).
+  - Created `src/components/ui/rich-content.tsx` — safe HTML renderer using DOMPurify sanitization + `dangerouslySetInnerHTML`. Also exports `stripHtml()` utility for plain-text card previews.
+  - Added `.rich-content` typography block to `globals.css` — proper styles for headings, lists, links, images, code, blockquotes rendered from stored HTML.
+  - Replaced `<textarea>` with `<RichEditor>` in all 3 teacher pages: `materials/page.tsx` (body field, text type), `homework/page.tsx` (description field), `announcements/page.tsx` (body field).
+  - Updated `openEdit` in announcements to load raw HTML into editor (was stripping tags before, which broke re-editing).
+  - Updated all card list previews to use `stripHtml()` instead of manual `.replace(/<[^>]+>/g, "")`.
+  - Build: 32 pages, zero TypeScript errors. Committed.
+- **Struggles / watch out:**
+  - `@tiptap/extension-text-direction` does NOT exist on npm — RTL handled by passing `dir="rtl"` directly to the editor attributes.
+  - Tiptap v3 changed `setContent` signature — second arg is now an options object `{ emitUpdate: false }`, not a boolean `false`. TypeScript caught this.
+  - `pocketbase` SDK was missing from `node_modules` despite being a project dependency — had to reinstall it manually. Always run `npm install` after cloning or if build fails with module-not-found on pocketbase.
 
 ### [NOT_STARTED] Milestone 6: Student Setup & Dashboard
 - View, react, and comment on news posts.
