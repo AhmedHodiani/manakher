@@ -159,6 +159,22 @@ It contains a short and clear to-do list of milestones.
   - Tailwind v4 doesn't support arbitrary gradient `from`/`to` values via CSS variables in class strings (e.g., `from-[var(--x)]`) for background-gradient shorthand — workaround: use `bg-gradient-to-r` class + individual `from-[...]` and `to-[...]` arbitrary value classes. These DO work with CSS vars as arbitrary values.
   - nth-child stat card coloring requires the `.stat-card-group` wrapper directly wrapping the grid children (not an extra wrapper div per card).
 
+**Iteration 3** (2026-03-26) — school identity + bilingual names + visual polish:
+- **What was done:**
+  - School identity set: `مدرسة مناخر الاساسية المؤنثة` / `Manakher Basic Girls' School`. All dictionaries updated (`schoolName` key added to `common`). Root layout `<title>` and `<meta description>` updated. Cairo font weight extended to include 800 and 900.
+  - **PocketBase schema**: `users` collection — removed `name` field, added `name_ar` (required text) and `name_en` (required text). All 3 seed users re-seeded with proper bilingual names (admin, teacher, student).
+  - **`AuthUser` type** in `lib/auth.ts`: replaced `name: string` with `name_ar: string` + `name_en: string`. Added `getDisplayName(user, locale)` helper — returns `name_ar` in Arabic locale, `name_en` in English, falls back to email.
+  - **`getDisplayName`** wired everywhere: dashboard layout header, all 3 dashboard pages (admin/teacher/student greeting).
+  - **Dashboard layout**: Added school name as small subtitle under brand mark. Header height bumped to h-16. Added a thin footer with school name. Loading spinners now use accent color. Applied `bg-surface-dotted` to the main page area for texture.
+  - **Login page**: Left panel shows full school name as primary `<h1>`. Right panel has proper welcome heading separate from school title. School name repeated as footer note below form card. Dot-grid background on form side.
+  - **globals.css**: Added `.bg-surface-dotted` utility class (dot-grid radial-gradient pattern). Heading default weight bumped to 800.
+  - **Dashboard pages (admin/teacher/student)**: Replaced flat page header with a full-width role-colored gradient welcome banner (matches each role's color system). Added "نظرة عامة / Overview" section heading above stat grid.
+  - **StatCard**: Added hover lift (`hover:-translate-y-0.5 hover:shadow-md`). Empty `"—"` value now renders in `ink-disabled` color (intentional, not broken-looking). Label bumped to `font-semibold`.
+  - Build: 16 pages, zero errors, zero TS warnings.
+- **Watch out for:**
+  - MCP PocketBase tool still drops auth between calls — always re-authenticate with curl and use `_superusers` collection endpoint, not `/api/admins/`.
+  - `bg-surface-dotted` is a custom CSS class, not a Tailwind utility — don't try to use it with Tailwind's JIT scanning, it's defined in `globals.css` directly.
+
 ### [NOT_STARTED] Milestone 4: Admin Setup - School Structure & Users
 - Add classes/grades (صف) and sections (شعبة).
 - Add subjects (المقررات).
