@@ -7,10 +7,34 @@ It contains a short and clear to-do list of milestones.
 
 ---
 
-### [NOT_STARTED] Milestone 1: Core Setup & Authentication
+### [INPROGRESS] Milestone 1: Core Setup & Authentication
 - Set up Next.js frontend and PocketBase backend.
 - Implement user authentication.
 - Structure Admin, Teacher, and Student roles with basic permissions.
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26):
+- **What was done:**
+  - Initialized Next.js 16.2.1 frontend (`/frontend`) with TypeScript, Tailwind CSS, App Router, `src/` dir.
+  - Downloaded and set up PocketBase v0.25.9 binary (`/backend`).
+  - Created PocketBase superadmin (`admin@manakher.com` / `Admin@12345`).
+  - Updated the default `users` auth collection with a `role` select field (values: `admin`, `teacher`, `student`). Set required=true, presentable=true.
+  - Configured API rules on `users` collection for role-based access (admins can list/create/delete all users, users can view/update themselves).
+  - Installed `pocketbase` JS SDK and `lucide-react` icons in frontend.
+  - Created PB client utility (`src/lib/pocketbase.ts`), auth helper functions (`src/lib/auth.ts`).
+  - Created `AuthProvider` context (`src/context/auth-context.tsx`) wrapping the app.
+  - Built clean login page at `/login` with email/password form, error display, loading state.
+  - Created `proxy.ts` (Next.js 16 replacement for `middleware.ts`) for route protection -- checks PB auth cookie, validates JWT expiry, redirects unauthenticated users to `/login`.
+  - Created dashboard layout with header (shows role badge, user name, sign out button).
+  - Created placeholder dashboard pages for `/dashboard/admin`, `/dashboard/teacher`, `/dashboard/student`.
+  - Root `/` page auto-redirects to role-specific dashboard or login.
+  - Seeded 3 test users: `admin@school.edu`, `teacher@school.edu`, `student@school.edu` (all passwords: `Role@12345` pattern).
+  - Build passes cleanly with zero errors.
+- **Issues/Lessons:**
+  - PocketBase MCP credentials were stale from a previous config (`admin@admin.com`). Had to update `opencode.json` with the new superadmin creds. The MCP server may still use cached old creds until restarted -- worked around by using `curl` API calls directly.
+  - Next.js 16 renamed `middleware.ts` to `proxy.ts` with `export const proxy` instead of `export function middleware`. Caught this by reading the bundled docs at `node_modules/next/dist/docs/`.
+  - `params` and `searchParams` are now async Promises in Next.js 16 -- must be awaited.
 
 ### [NOT_STARTED] Milestone 2: support 2 languanges arabic and english & RTL Architecture (Arabic First)
 - **Internationalization (i18n) Setup**: Configure the Next.js foundation for seamless switching between Arabic (Default/Primary) and English.

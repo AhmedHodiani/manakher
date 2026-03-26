@@ -7,8 +7,8 @@
       "enabled": true,
       "environment": {
         "POCKETBASE_URL": "http://127.0.0.1:8090",
-        "POCKETBASE_ADMIN_EMAIL": "admin@admin.com",
-        "POCKETBASE_ADMIN_PASSWORD": "admin@123"
+        "POCKETBASE_ADMIN_EMAIL": "admin@manakher.com",
+        "POCKETBASE_ADMIN_PASSWORD": "Admin@12345"
       }
     }
   }
