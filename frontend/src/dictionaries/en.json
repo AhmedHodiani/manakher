@@ -134,7 +134,10 @@
         "title": "My Sections & Students",
         "empty": "No sections have been assigned to you yet.",
         "students": "Students",
-        "noStudents": "No students in this section yet."
+        "noStudents": "No students in this section yet.",
+        "searchAll": "Search a student across all sections...",
+        "searchSection": "Search within section...",
+        "noMatch": "No matching students found."
       },
       "materials": {
         "title": "Learning Materials",
