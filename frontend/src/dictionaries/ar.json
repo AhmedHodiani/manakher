@@ -1,18 +1,19 @@
 {
   "common": {
     "appName": "مناخر",
+    "schoolName": "مدرسة مناخر الاساسية المؤنثة",
     "signOut": "تسجيل الخروج",
     "loading": "جاري التحميل...",
     "switchLang": "English"
   },
   "roles": {
-    "admin": "مدير",
-    "teacher": "معلم",
-    "student": "طالب"
+    "admin": "مديرة",
+    "teacher": "معلمة",
+    "student": "طالبة"
   },
   "login": {
-    "title": "مناخر",
-    "subtitle": "سجّل دخولك إلى حسابك",
+    "title": "مدرسة مناخر الاساسية المؤنثة",
+    "subtitle": "المنصة التعليمية الرسمية للمدرسة",
     "emailLabel": "البريد الإلكتروني",
     "emailPlaceholder": "you@school.edu",
     "passwordLabel": "كلمة المرور",
@@ -24,25 +25,25 @@
   "dashboard": {
     "greeting": "أهلاً،",
     "admin": {
-      "title": "لوحة تحكم المدير",
+      "title": "لوحة التحكم",
       "stats": {
         "users": "المستخدمون",
         "classes": "الفصول النشطة",
-        "teachers": "المعلمون",
+        "teachers": "المعلمات",
         "announcements": "الإعلانات"
       }
     },
     "teacher": {
-      "title": "لوحة تحكم المعلم",
+      "title": "لوحة المعلمة",
       "stats": {
         "subjects": "موادي",
-        "students": "طلابي",
+        "students": "طالباتي",
         "assignments": "الواجبات",
         "pending": "بانتظار المراجعة"
       }
     },
     "student": {
-      "title": "لوحة تحكم الطالب",
+      "title": "لوحة الطالبة",
       "stats": {
         "subjects": "موادي",
         "homework": "واجبات مستحقة",

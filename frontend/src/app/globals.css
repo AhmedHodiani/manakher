@@ -6,28 +6,28 @@
   /* Typography */
   --font-sans: var(--font-cairo, ui-sans-serif, system-ui, sans-serif);
 
-  /* Surface palette — warm ivory base, alive not sterile */
-  --color-surface:        #faf8f5;   /* page background — warm ivory */
-  --color-surface-card:   #ffffff;   /* card / panel background */
-  --color-surface-sunken: #f2ede8;   /* inset / input background */
-  --color-surface-hover:  #ede8e2;   /* interactive hover state */
+  /* Surface palette — warm ivory base */
+  --color-surface:        #faf8f5;
+  --color-surface-card:   #ffffff;
+  --color-surface-sunken: #f2ede8;
+  --color-surface-hover:  #ede8e2;
 
   /* Border */
-  --color-border:         #e0d9d0;   /* default border — warm not cold */
-  --color-border-subtle:  #ede8e2;   /* very light divider */
+  --color-border:         #e0d9d0;
+  --color-border-subtle:  #ede8e2;
 
   /* Ink (text) */
-  --color-ink:            #1c1917;   /* primary text — warm near-black */
-  --color-ink-secondary:  #6b6460;   /* secondary / muted text */
-  --color-ink-placeholder:#a89e97;   /* placeholder text */
-  --color-ink-disabled:   #c9c0b8;   /* disabled state text */
-  --color-ink-inverse:    #ffffff;   /* text on dark/colored backgrounds */
+  --color-ink:            #1c1917;
+  --color-ink-secondary:  #6b6460;
+  --color-ink-placeholder:#a89e97;
+  --color-ink-disabled:   #c9c0b8;
+  --color-ink-inverse:    #ffffff;
 
-  /* Accent — rich violet/indigo: authoritative yet warm, not cold-corporate */
-  --color-accent:         #5b21b6;   /* primary action — deep violet */
-  --color-accent-hover:   #4c1d95;   /* action hover */
-  --color-accent-subtle:  #ede9fe;   /* light accent tint (badge bg, etc.) */
-  --color-accent-text:    #4c1d95;   /* accent-colored text */
+  /* Accent — deep violet */
+  --color-accent:         #5b21b6;
+  --color-accent-hover:   #4c1d95;
+  --color-accent-subtle:  #ede9fe;
+  --color-accent-text:    #4c1d95;
 
   /* Status */
   --color-danger:         #dc2626;
@@ -40,34 +40,30 @@
   --color-warning-subtle: #fffbeb;
   --color-warning-text:   #b45309;
 
-  /* Role accent system — each role gets a distinct vivid but tasteful hue */
-
-  /* Admin — deep indigo/violet */
+  /* Role colors */
   --color-role-admin-bg:      #ede9fe;
   --color-role-admin-text:    #4c1d95;
   --color-role-admin-bold:    #5b21b6;
   --color-role-admin-card:    #f5f3ff;
 
-  /* Teacher — teal/emerald: growth, knowledge */
   --color-role-teacher-bg:    #ccfbf1;
   --color-role-teacher-text:  #0f766e;
   --color-role-teacher-bold:  #0d9488;
   --color-role-teacher-card:  #f0fdfa;
 
-  /* Student — amber/orange: energy, curiosity */
   --color-role-student-bg:    #fed7aa;
   --color-role-student-text:  #c2410c;
   --color-role-student-bold:  #ea580c;
   --color-role-student-card:  #fff7ed;
 
-  /* Stat card icon palette — 4 distinct colors for 4 stat cards */
-  --color-stat-1-bg:   #dbeafe;   /* sky blue */
+  /* Stat card icon palette */
+  --color-stat-1-bg:   #dbeafe;
   --color-stat-1-icon: #2563eb;
-  --color-stat-2-bg:   #dcfce7;   /* green */
+  --color-stat-2-bg:   #dcfce7;
   --color-stat-2-icon: #16a34a;
-  --color-stat-3-bg:   #fce7f3;   /* pink */
+  --color-stat-3-bg:   #fce7f3;
   --color-stat-3-icon: #db2777;
-  --color-stat-4-bg:   #fef9c3;   /* yellow */
+  --color-stat-4-bg:   #fef9c3;
   --color-stat-4-icon: #ca8a04;
 
   /* Radii */
@@ -78,7 +74,7 @@
   --radius-2xl:  28px;
   --radius-full: 9999px;
 
-  /* Shadows — warmer, more present */
+  /* Shadows */
   --shadow-xs:  0 1px 2px 0 rgb(28 25 23 / 0.06);
   --shadow-sm:  0 2px 6px -1px rgb(28 25 23 / 0.09), 0 1px 2px -1px rgb(28 25 23 / 0.05);
   --shadow-md:  0 6px 16px -4px rgb(28 25 23 / 0.12), 0 2px 6px -2px rgb(28 25 23 / 0.06);
@@ -110,6 +106,14 @@ body {
   text-align: start;
 }
 
+/* ─── Subtle dot-grid background on the page surface ────────────────────── */
+/* Only applied to the main page surface, not cards */
+.bg-surface-dotted {
+  background-color: var(--color-surface);
+  background-image: radial-gradient(circle, #d4ccc4 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* ─── RTL / LTR text alignment ───────────────────────────────────────────── */
 
 [dir="rtl"],
@@ -120,8 +124,8 @@ body {
 /* ─── Typography scale ───────────────────────────────────────────────────── */
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  line-height: 1.25;
+  font-weight: 800;
+  line-height: 1.2;
   color: var(--color-ink);
   margin: 0;
 }
@@ -138,25 +142,14 @@ p {
   border-radius: var(--radius-sm);
 }
 
-/* ─── Scrollbar (subtle) ─────────────────────────────────────────────────── */
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-placeholder);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-placeholder); }
 
-/* ─── Stat card accent slots ─────────────────────────────────────────────── */
-/* Each nth stat card gets its own color — no JS required */
+/* ─── Stat card color slots (nth-child) ──────────────────────────────────── */
 
 .stat-card-group > *:nth-child(1) .stat-icon {
   background-color: var(--color-stat-1-bg);

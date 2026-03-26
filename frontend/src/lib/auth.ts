@@ -5,10 +5,18 @@ export type UserRole = "admin" | "teacher" | "student";
 
 export interface AuthUser extends RecordModel {
   email: string;
-  name: string;
+  name_ar: string;
+  name_en: string;
   role: UserRole;
   avatar: string;
   verified: boolean;
+}
+
+/** Returns the display name for a user in the given locale. */
+export function getDisplayName(user: AuthUser, locale: string): string {
+  return locale === "ar"
+    ? user.name_ar || user.name_en || user.email
+    : user.name_en || user.name_ar || user.email;
 }
 
 export async function login(

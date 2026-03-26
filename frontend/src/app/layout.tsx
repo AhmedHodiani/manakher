@@ -5,14 +5,14 @@ import "./globals.css";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-cairo",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Manakher",
-  description: "Educational platform for schools",
+  title: "مدرسة مناخر الاساسية المؤنثة",
+  description: "المنصة التعليمية الرسمية لمدرسة مناخر الاساسية المؤنثة",
 };
 
 export default function RootLayout({

@@ -26,9 +26,7 @@ export default function LoginPage() {
       const user = await login(email, password);
       router.push(getRoleDashboardPath(user.role, locale));
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : dict.login.invalidCredentials
-      );
+      setError(err instanceof Error ? err.message : dict.login.invalidCredentials);
     } finally {
       setIsSubmitting(false);
     }
@@ -40,89 +38,87 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-[var(--color-surface)]">
 
-      {/* Left panel — decorative brand side */}
+      {/* ── Left decorative panel ───────────────────────────────────────── */}
       <div
-        className="hidden lg:flex lg:w-[44%] flex-col items-center justify-center relative overflow-hidden"
-        style={{
-          background: "linear-gradient(145deg, #5b21b6 0%, #7c3aed 50%, #4c1d95 100%)",
-        }}
+        className="hidden lg:flex lg:w-[46%] flex-col items-center justify-center relative overflow-hidden"
+        style={{ background: "linear-gradient(150deg, #4c1d95 0%, #5b21b6 45%, #7c3aed 100%)" }}
       >
-        {/* Large soft circles — texture without chaos */}
+        {/* Background circles — give depth */}
+        <div className="absolute rounded-full opacity-[0.12]" style={{ width: 520, height: 520, background: "#fff", top: -140, insetInlineEnd: -160 }} />
+        <div className="absolute rounded-full opacity-[0.08]" style={{ width: 320, height: 320, background: "#fff", bottom: 20, insetInlineStart: -80 }} />
+        <div className="absolute rounded-full opacity-[0.14]" style={{ width: 200, height: 200, background: "#c4b5fd", bottom: 180, insetInlineEnd: 40 }} />
+        {/* Dot pattern overlay */}
         <div
-          className="absolute rounded-full opacity-20"
-          style={{ width: 440, height: 440, background: "#ffffff", top: -80, insetInlineEnd: -120 }}
-        />
-        <div
-          className="absolute rounded-full opacity-10"
-          style={{ width: 280, height: 280, background: "#ffffff", bottom: 40, insetInlineStart: -60 }}
-        />
-        <div
-          className="absolute rounded-full opacity-15"
-          style={{ width: 180, height: 180, background: "#c4b5fd", bottom: 200, insetInlineEnd: 60 }}
+          className="absolute inset-0 opacity-[0.06]"
+          style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "28px 28px" }}
         />
 
         {/* Brand content */}
-        <div className="relative z-10 text-center px-12">
-          {/* Brand mark — large, geometric */}
+        <div className="relative z-10 text-center px-14">
+          {/* Large brand mark */}
           <div
-            className="inline-flex h-24 w-24 items-center justify-center rounded-[var(--radius-2xl)] mb-8 shadow-[var(--shadow-lg)]"
-            style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", border: "2px solid rgba(255,255,255,0.25)" }}
+            className="inline-flex h-28 w-28 items-center justify-center rounded-[var(--radius-2xl)] mb-8 shadow-[var(--shadow-lg)]"
+            style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", border: "2px solid rgba(255,255,255,0.22)" }}
           >
-            <span className="text-4xl font-black text-white" style={{ letterSpacing: "-1px" }}>م</span>
+            <span className="text-5xl font-black text-white" style={{ letterSpacing: "-2px" }}>م</span>
           </div>
 
-          <h1 className="text-3xl font-black text-white mb-3" style={{ letterSpacing: "-0.5px" }}>
-            {dict.common.appName}
+          {/* School name — the real identity */}
+          <h1 className="text-2xl font-black text-white leading-tight mb-2" style={{ letterSpacing: "-0.5px" }}>
+            {t.title}
           </h1>
-          <p className="text-violet-200 text-base leading-relaxed max-w-[260px] mx-auto">
+          <div className="mx-auto mb-5 h-0.5 w-16 rounded-full bg-violet-300 opacity-60" />
+          <p className="text-violet-200 text-sm leading-relaxed">
             {t.subtitle}
           </p>
 
-          {/* Decorative row of dots */}
+          {/* Decorative dots row */}
           <div className="flex items-center justify-center gap-2 mt-10">
-            <span className="h-2 w-8 rounded-full bg-white opacity-80" />
-            <span className="h-2 w-2 rounded-full bg-white opacity-40" />
-            <span className="h-2 w-2 rounded-full bg-white opacity-40" />
+            <span className="h-2 w-10 rounded-full bg-white opacity-70" />
+            <span className="h-2 w-2 rounded-full bg-white opacity-35" />
+            <span className="h-2 w-2 rounded-full bg-white opacity-35" />
           </div>
         </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      {/* ── Right form panel ────────────────────────────────────────────── */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 relative bg-surface-dotted">
 
-        {/* Language switcher — top right */}
+        {/* Language switcher */}
         <div className="absolute top-5 end-5">
           <button
             onClick={() => switchLocale(nextLocale)}
-            className="text-xs font-semibold text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-full)] px-3 py-1.5 hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]"
+            className="text-xs font-bold text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-full)] px-3 py-1.5 border border-[var(--color-border)] bg-[var(--color-surface-card)] hover:bg-[var(--color-surface-hover)] shadow-[var(--shadow-xs)]"
           >
             {dict.common.switchLang}
           </button>
         </div>
 
-        {/* Mobile brand mark — only visible on small screens */}
+        {/* Mobile brand — only on small screens */}
         <div className="lg:hidden mb-8 text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--color-accent)] mb-3 shadow-[var(--shadow-md)]">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-[var(--radius-xl)] shadow-[var(--shadow-md)] mb-3" style={{ background: "linear-gradient(135deg, #4c1d95, #7c3aed)" }}>
             <span className="text-2xl font-black text-white">م</span>
           </div>
-          <h1 className="text-lg font-bold text-[var(--color-ink)]">{dict.common.appName}</h1>
+          <h1 className="text-base font-black text-[var(--color-ink)] leading-snug">{t.title}</h1>
         </div>
 
         {/* Form container */}
         <div className="w-full max-w-[400px]">
-          <div className="mb-8">
+
+          {/* Heading */}
+          <div className="mb-7">
             <h2 className="text-2xl font-black text-[var(--color-ink)]" style={{ letterSpacing: "-0.5px" }}>
-              {t.title}
+              {locale === "ar" ? "أهلاً بك" : "Welcome back"}
             </h2>
-            <p className="mt-1.5 text-sm text-[var(--color-ink-secondary)]">
-              {t.subtitle}
+            <p className="mt-1 text-sm text-[var(--color-ink-secondary)]">
+              {locale === "ar" ? "سجّل دخولك للمتابعة" : "Sign in to continue"}
             </p>
           </div>
 
-          {/* Form card */}
+          {/* Card */}
           <div className="bg-[var(--color-surface-card)] border border-[var(--color-border)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-md)] p-8">
             {error && (
-              <div className="mb-6 flex items-start gap-3 rounded-[var(--radius-lg)] bg-[var(--color-danger-subtle)] border border-red-100 p-4 text-sm text-[var(--color-danger-text)]">
+              <div className="mb-5 flex items-start gap-3 rounded-[var(--radius-lg)] bg-[var(--color-danger-subtle)] border border-red-100 p-3.5 text-sm text-[var(--color-danger-text)]">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-danger)]" />
                 <span>{error}</span>
               </div>
@@ -139,7 +135,6 @@ export default function LoginPage() {
                 autoComplete="email"
                 placeholder={t.emailPlaceholder}
               />
-
               <Input
                 id="password"
                 label={t.passwordLabel}
@@ -150,21 +145,21 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 placeholder={t.passwordPlaceholder}
               />
-
               <Button
                 type="submit"
                 disabled={isSubmitting}
                 className="mt-1 w-full py-3 text-base rounded-[var(--radius-lg)]"
               >
-                {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <LogIn className="h-4 w-4" />
-                )}
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 {isSubmitting ? t.submittingButton : t.submitButton}
               </Button>
             </form>
           </div>
+
+          {/* Footer note */}
+          <p className="mt-5 text-center text-xs text-[var(--color-ink-disabled)] font-medium">
+            {dict.common.schoolName}
+          </p>
         </div>
       </div>
     </div>

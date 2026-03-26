@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Manakher",
+    "schoolName": "Manakher Basic Girls' School",
     "signOut": "Sign out",
     "loading": "Loading...",
     "switchLang": "عربي"
@@ -11,8 +12,8 @@
     "student": "Student"
   },
   "login": {
-    "title": "Manakher",
-    "subtitle": "Sign in to your account",
+    "title": "Manakher Basic Girls' School",
+    "subtitle": "The official school educational platform",
     "emailLabel": "Email",
     "emailPlaceholder": "you@school.edu",
     "passwordLabel": "Password",
@@ -24,7 +25,7 @@
   "dashboard": {
     "greeting": "Hello,",
     "admin": {
-      "title": "Admin Dashboard",
+      "title": "Dashboard",
       "stats": {
         "users": "Total Users",
         "classes": "Active Classes",
