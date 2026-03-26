@@ -273,6 +273,11 @@ It contains a short and clear to-do list of milestones.
   - TypeScript doesn't allow `Submission | null | "loading"` in a union with `!== "loading"` type guard — fixed by using a `SubmissionState { loading: boolean; data: Submission | null }` wrapper type instead.
   - PocketBase API rules confirmed correct: students can list/view all relevant collections (auth required), can create submissions, teachers can update submissions (for grading).
 
+**Iteration 2** (2026-03-26) — Fix: teachers could not see students in sections:
+- **Root cause:** `users` collection `listRule` was `id = @request.auth.id || @request.auth.role = "admin"`. Teachers were silently getting 0 results when querying students because PocketBase applies the rule and returns an empty list without an error.
+- **Fix:** Updated `listRule` and `viewRule` to also allow `@request.auth.role = "teacher"`. Applied via PATCH to PocketBase API.
+- **Verified:** Teacher auth token now returns 15 students when querying a section.
+
 ### [NOT_STARTED] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.
 
