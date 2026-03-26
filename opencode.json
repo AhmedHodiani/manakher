@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "pocketbase": {
+      "type": "local",
+      "command": ["node", ".mcp/pocketbase-mcp/build/index.js"],
+      "enabled": true,
+      "environment": {
+        "POCKETBASE_URL": "http://127.0.0.1:8090",
+        "POCKETBASE_ADMIN_EMAIL": "admin@admin.com",
+        "POCKETBASE_ADMIN_PASSWORD": "admin@123"
+      }
+    }
+  }
+}
