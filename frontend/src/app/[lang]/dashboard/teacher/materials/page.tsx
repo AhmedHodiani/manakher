@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { BookOpen, Plus, Pencil, Trash2, X } from "lucide-react";
+import { BookOpen, Plus, Pencil, Trash2, X, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
-import { RichContent, stripHtml } from "@/components/ui/rich-content";
+import { stripHtml } from "@/components/ui/rich-content";
 
 interface Section {
   id: string;
@@ -29,7 +29,6 @@ interface Material {
   id: string;
   title: string;
   body: string;
-  type: "text" | "file" | "link" | "video";
   link_url: string;
   section: string;
   subject: string;
@@ -37,7 +36,7 @@ interface Material {
   expand?: { section?: Section; subject?: Subject };
 }
 
-const EMPTY_FORM = { title: "", body: "", type: "text" as Material["type"], link_url: "", section: "", subject: "" };
+const EMPTY_FORM = { title: "", body: "", link_url: "", section: "", subject: "" };
 
 export default function TeacherMaterialsPage() {
   const { user } = useAuth();
@@ -104,7 +103,7 @@ export default function TeacherMaterialsPage() {
   }
 
   function openEdit(m: Material) {
-    setForm({ title: m.title, body: m.body, type: m.type, link_url: m.link_url, section: m.section, subject: m.subject });
+    setForm({ title: m.title, body: m.body, link_url: m.link_url, section: m.section, subject: m.subject });
     setEditingId(m.id);
     setShowForm(true);
   }
@@ -135,13 +134,6 @@ export default function TeacherMaterialsPage() {
     await pb.collection("materials").delete(id);
     await load();
   }
-
-  const typeLabel: Record<Material["type"], string> = {
-    text: t.typeText,
-    file: t.typeFile,
-    link: t.typeLink,
-    video: t.typeVideo,
-  };
 
   return (
     <div className="space-y-6">
@@ -216,36 +208,21 @@ export default function TeacherMaterialsPage() {
               </select>
             </div>
 
-            {/* Type select */}
-            <div className="space-y-1">
-              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.type}</label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as Material["type"] }))}
-                className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-              >
-                <option value="text">{t.typeText}</option>
-                <option value="file">{t.typeFile}</option>
-                <option value="link">{t.typeLink}</option>
-                <option value="video">{t.typeVideo}</option>
-              </select>
+            {/* Optional link URL */}
+            <div className="sm:col-span-2">
+              <Input label={t.linkUrl} value={form.link_url} onChange={(e) => setForm((f) => ({ ...f, link_url: e.target.value }))} placeholder={t.phLink} />
             </div>
 
-            {(form.type === "link" || form.type === "video") && (
-              <Input label={t.linkUrl} value={form.link_url} onChange={(e) => setForm((f) => ({ ...f, link_url: e.target.value }))} placeholder={t.phLink} />
-            )}
-
-            {form.type === "text" && (
-              <div className="sm:col-span-2 space-y-1">
-                <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.body}</label>
-                <RichEditor
-                  value={form.body}
-                  onChange={(html) => setForm((f) => ({ ...f, body: html }))}
-                  placeholder={t.phBody}
-                  dir={locale === "ar" ? "rtl" : "ltr"}
-                />
-              </div>
-            )}
+            {/* Rich text body */}
+            <div className="sm:col-span-2 space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.body}</label>
+              <RichEditor
+                value={form.body}
+                onChange={(html) => setForm((f) => ({ ...f, body: html }))}
+                placeholder={t.phBody}
+                dir={locale === "ar" ? "rtl" : "ltr"}
+              />
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end">
@@ -281,7 +258,6 @@ export default function TeacherMaterialsPage() {
                       <div className="flex gap-2 mt-0.5 flex-wrap">
                         {sec && <span className="text-xs text-[var(--color-ink-secondary)] font-semibold">{locale === "ar" ? `${sec.grade_ar} — ${sec.section_ar}` : `${sec.grade_en} — ${sec.section_en}`}</span>}
                         {sub && <span className="text-xs text-[var(--color-ink-secondary)]">· {locale === "ar" ? sub.name_ar : sub.name_en}</span>}
-                        <span className="text-xs bg-[var(--color-surface-sunken)] rounded-full px-2 py-0.5 font-semibold text-[var(--color-ink-secondary)]">{typeLabel[m.type]}</span>
                       </div>
                     </div>
                   </div>
@@ -296,7 +272,8 @@ export default function TeacherMaterialsPage() {
                 </div>
                 {m.body && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-2">{stripHtml(m.body)}</p>}
                 {m.link_url && (
-                  <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mt-1 block text-sm text-[var(--color-accent-text)] underline truncate">
+                  <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mt-1.5 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline truncate">
+                    <Link2 className="h-3.5 w-3.5 shrink-0" />
                     {m.link_url}
                   </a>
                 )}
