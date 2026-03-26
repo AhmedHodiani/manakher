@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
+import { StatCard } from "@/components/ui/stat-card";
 import { Shield, Users, BookOpen, Bell } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -11,40 +12,26 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">{t.title}</h2>
-        <p className="text-sm text-slate-500">
-          {t.welcome}
-          {user?.name ? ` ${user.name}` : ""}
+      {/* Page header */}
+      <div className="mb-8">
+        <p className="text-sm text-[var(--color-ink-secondary)]">
+          {dict.dashboard.greeting}{" "}
+          <span className="font-medium text-[var(--color-ink)]">
+            {user?.name || user?.email}
+          </span>
         </p>
+        <h2 className="mt-1 text-2xl font-semibold text-[var(--color-ink)]">
+          {t.title}
+        </h2>
       </div>
 
+      {/* Stat grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard icon={<Users className="h-5 w-5 text-slate-600" />} label="--" value="--" />
-        <DashboardCard icon={<BookOpen className="h-5 w-5 text-slate-600" />} label="--" value="--" />
-        <DashboardCard icon={<Shield className="h-5 w-5 text-slate-600" />} label="--" value="--" />
-        <DashboardCard icon={<Bell className="h-5 w-5 text-slate-600" />} label="--" value="--" />
+        <StatCard icon={<Users className="h-4 w-4" />} label={t.stats.users} value="—" />
+        <StatCard icon={<BookOpen className="h-4 w-4" />} label={t.stats.classes} value="—" />
+        <StatCard icon={<Shield className="h-4 w-4" />} label={t.stats.teachers} value="—" />
+        <StatCard icon={<Bell className="h-4 w-4" />} label={t.stats.announcements} value="—" />
       </div>
-    </div>
-  );
-}
-
-function DashboardCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <div className="mb-2 flex items-center gap-2">
-        {icon}
-        <span className="text-sm text-slate-500">{label}</span>
-      </div>
-      <p className="text-2xl font-semibold text-slate-900">{value}</p>
     </div>
   );
 }

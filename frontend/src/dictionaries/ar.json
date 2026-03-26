@@ -22,17 +22,33 @@
     "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
   },
   "dashboard": {
+    "greeting": "أهلاً،",
     "admin": {
       "title": "لوحة تحكم المدير",
-      "welcome": "أهلاً بك في لوحة تحكم المدير."
+      "stats": {
+        "users": "المستخدمون",
+        "classes": "الفصول النشطة",
+        "teachers": "المعلمون",
+        "announcements": "الإعلانات"
+      }
     },
     "teacher": {
       "title": "لوحة تحكم المعلم",
-      "welcome": "أهلاً بك في لوحة تحكم المعلم."
+      "stats": {
+        "subjects": "موادي",
+        "students": "طلابي",
+        "assignments": "الواجبات",
+        "pending": "بانتظار المراجعة"
+      }
     },
     "student": {
       "title": "لوحة تحكم الطالب",
-      "welcome": "أهلاً بك في لوحة تحكم الطالب."
+      "stats": {
+        "subjects": "موادي",
+        "homework": "واجبات مستحقة",
+        "quizzes": "اختبارات قادمة",
+        "announcements": "إعلانات"
+      }
     }
   }
 }

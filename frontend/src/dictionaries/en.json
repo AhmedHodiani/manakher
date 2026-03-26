@@ -22,17 +22,33 @@
     "invalidCredentials": "Invalid email or password."
   },
   "dashboard": {
+    "greeting": "Hello,",
     "admin": {
       "title": "Admin Dashboard",
-      "welcome": "Welcome to the admin dashboard."
+      "stats": {
+        "users": "Total Users",
+        "classes": "Active Classes",
+        "teachers": "Teachers",
+        "announcements": "Announcements"
+      }
     },
     "teacher": {
       "title": "Teacher Dashboard",
-      "welcome": "Welcome to the teacher dashboard."
+      "stats": {
+        "subjects": "My Subjects",
+        "students": "My Students",
+        "assignments": "Assignments",
+        "pending": "Pending Reviews"
+      }
     },
     "student": {
       "title": "Student Dashboard",
-      "welcome": "Welcome to the student dashboard."
+      "stats": {
+        "subjects": "My Subjects",
+        "homework": "Homework Due",
+        "quizzes": "Upcoming Quizzes",
+        "announcements": "Announcements"
+      }
     }
   }
 }

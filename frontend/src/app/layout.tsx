@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Tajawal } from "next/font/google";
+import { Cairo } from "next/font/google";
 import { AuthProvider } from "@/context/auth-context";
 import "./globals.css";
 
-const tajawal = Tajawal({
+const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "700"],
-  variable: "--font-tajawal",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cairo",
   display: "swap",
 });
 
@@ -20,11 +20,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Default lang/dir to Arabic (the default locale).
-  // The [lang]/layout.tsx will override these via HtmlAttributes on the client.
   return (
-    <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col bg-slate-50">
+    <html lang="ar" dir="rtl" className={cairo.variable} suppressHydrationWarning>
+      <body className="min-h-full bg-surface text-ink antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

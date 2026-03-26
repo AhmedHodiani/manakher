@@ -106,10 +106,40 @@ It contains a short and clear to-do list of milestones.
   - `"server-only"` in `i18n.ts` caused build error when `locale-context.tsx` (a client component) imported from it. Fixed by splitting: `locale-config.ts` (client-safe, no server-only) vs `i18n.ts` (server-only, contains getDictionary).
   - In Next.js App Router, nested layouts cannot render `<html>/<body>` — only the root layout can. Used `HtmlAttributes` client component with `useEffect` to update `lang`/`dir` on `document.documentElement` instead.
 
-### [NOT_STARTED] Milestone 3: Design System & UI/UX Guidelines
+### [HANDOFF] Milestone 3: Design System & UI/UX Guidelines
 - Construct the global CSS and Tailwind theme rules enforcing a minimal, gentle, and clean aesthetic.
 - Define a bright but soft color palette (strictly non-blinding/not overly colorful).
 - Build the layout structures strictly avoiding playful elements (NO emojis, NO cartoonish visuals, NO heavy/stupid animations).
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26):
+- **What was done:**
+  - Swapped Tajawal → **Cairo** font everywhere (`layout.tsx`, `globals.css`). CSS variable renamed `--font-tajawal` → `--font-cairo`.
+  - Rewrote `globals.css` with a full Tailwind v4 `@theme inline` block defining all design tokens:
+    - **Surface**: `--color-surface` (off-white page bg), `--color-surface-card` (white cards), `--color-surface-sunken` (input bg), `--color-surface-hover`.
+    - **Border**: `--color-border`, `--color-border-subtle`.
+    - **Ink (text)**: `--color-ink` (primary), `--color-ink-secondary`, `--color-ink-placeholder`, `--color-ink-disabled`, `--color-ink-inverse`.
+    - **Accent**: muted calm blue (`#3b7dd8`), hover, subtle tint, text variant.
+    - **Status**: danger, success, warning with bg/text variants.
+    - **Role tints**: admin (purple), teacher (green), student (amber) — for role badges.
+    - **Radii**: sm/md/lg/xl/full.
+    - **Shadows**: xs/sm/md — subtle, not dramatic.
+  - Added base reset: `text-align: start` for RTL/LTR, subtle scrollbar styling, focus-visible ring using accent color.
+  - Created `src/components/ui/` shared primitives:
+    - `card.tsx` — `<Card>` with design-token border/shadow/radius.
+    - `badge.tsx` — `<Badge>` with variants: default, admin, teacher, student, accent.
+    - `button.tsx` — `<Button>` with variants: primary, ghost, danger.
+    - `stat-card.tsx` — `<StatCard icon label value>` with accent-tinted icon box.
+    - `input.tsx` — `<Input label>` with sunken bg, focus ring, RTL-compatible.
+  - Restyled login page: brand mark (accent square with "م"), form card with rounded-xl, uses `<Input>` and `<Button>` primitives.
+  - Restyled dashboard layout: sticky header with Cairo, role `<Badge>`, compact lang-switcher and sign-out buttons.
+  - Restyled all 3 dashboard role pages using `<StatCard>`. Added greeting line with user name.
+  - Expanded both dictionaries with stat card labels (`stats` key) and a `greeting` key.
+  - Build passes with zero errors.
+- **Issues/Lessons:**
+  - Tailwind v4 uses `@theme inline { ... }` (not `theme: { extend: {} }` in a config file). All custom tokens must be CSS variables inside that block.
+  - Using CSS variable references in Tailwind class strings (e.g. `bg-[var(--color-accent)]`) works perfectly in v4 with no extra config.
 
 ### [NOT_STARTED] Milestone 4: Admin Setup - School Structure & Users
 - Add classes/grades (صف) and sections (شعبة).
