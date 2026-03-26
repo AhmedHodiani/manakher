@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { GraduationCap, Plus, Trash2, Loader2, X, ChevronDown } from "lucide-react";
+import { GraduationCap, Plus, Trash2, Pencil, Loader2, X, ChevronDown } from "lucide-react";
 
 interface Teacher {
   id: string;
   name_ar: string;
   name_en: string;
   email: string;
-  role: string;
   sections: string[];
   subjects: string[];
   expand?: {
@@ -34,6 +33,8 @@ interface Subject {
   name_en: string;
   code: string;
 }
+
+const EMPTY_FORM = { name_ar: "", name_en: "", email: "", password: "", sections: [] as string[], subjects: [] as string[] };
 
 function MultiSelect({
   label,
@@ -60,7 +61,7 @@ function MultiSelect({
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm text-start focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
       >
-        <span className="truncate text-[var(--color-ink-secondary)]">
+        <span className={["truncate", selected.length === 0 ? "text-[var(--color-ink-placeholder)]" : "text-[var(--color-ink)]"].join(" ")}>
           {selected.length === 0 ? "—" : selected.map(getLabel).join("، ")}
         </span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[var(--color-ink-placeholder)]" />
@@ -94,13 +95,10 @@ export default function TeachersPage() {
   const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    name_ar: "", name_en: "", email: "", password: "",
-    sections: [] as string[], subjects: [] as string[],
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   async function load() {
     setLoading(true);
@@ -124,23 +122,62 @@ export default function TeachersPage() {
 
   useEffect(() => { load(); }, []);
 
-  async function handleCreate(e: React.FormEvent) {
+  function openCreate() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setShowForm(true);
+  }
+
+  function openEdit(teacher: Teacher) {
+    setEditingId(teacher.id);
+    setForm({
+      name_ar: teacher.name_ar,
+      name_en: teacher.name_en,
+      email: teacher.email,
+      password: "",
+      sections: teacher.sections ?? [],
+      subjects: teacher.subjects ?? [],
+    });
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      await pb.collection("users").create({
-        name_ar: form.name_ar,
-        name_en: form.name_en,
-        email: form.email,
-        password: form.password,
-        passwordConfirm: form.password,
-        role: "teacher",
-        sections: form.sections,
-        subjects: form.subjects,
-        emailVisibility: true,
-      });
-      setForm({ name_ar: "", name_en: "", email: "", password: "", sections: [], subjects: [] });
-      setShowForm(false);
+      if (editingId) {
+        const data: Record<string, unknown> = {
+          name_ar: form.name_ar,
+          name_en: form.name_en,
+          email: form.email,
+          sections: form.sections,
+          subjects: form.subjects,
+        };
+        if (form.password) {
+          data.password = form.password;
+          data.passwordConfirm = form.password;
+        }
+        await pb.collection("users").update(editingId, data);
+      } else {
+        await pb.collection("users").create({
+          name_ar: form.name_ar,
+          name_en: form.name_en,
+          email: form.email,
+          password: form.password,
+          passwordConfirm: form.password,
+          role: "teacher",
+          sections: form.sections,
+          subjects: form.subjects,
+          emailVisibility: true,
+        });
+      }
+      closeForm();
       await load();
     } finally {
       setSaving(false);
@@ -162,14 +199,14 @@ export default function TeachersPage() {
     id: s.id,
     label: locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`,
   }));
-
   const subjectOptions = allSubjects.map(s => ({
     id: s.id,
     label: locale === "ar" ? s.name_ar : s.name_en,
   }));
-
   const getSectionLabel = (id: string) => sectionOptions.find(o => o.id === id)?.label ?? id;
   const getSubjectLabel = (id: string) => subjectOptions.find(o => o.id === id)?.label ?? id;
+
+  const inputCls = "w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]";
 
   return (
     <div className="space-y-6">
@@ -183,7 +220,7 @@ export default function TeachersPage() {
           <h2 className="text-xl font-black text-[var(--color-ink)]">{t.title}</h2>
         </div>
         <button
-          onClick={() => setShowForm(v => !v)}
+          onClick={openCreate}
           className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-4 py-2 text-sm font-bold text-white shadow-[var(--shadow-sm)] hover:bg-[var(--color-accent-hover)] transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -191,29 +228,40 @@ export default function TeachersPage() {
         </button>
       </div>
 
-      {/* Add form */}
+      {/* Create / Edit form */}
       {showForm && (
         <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] p-5 shadow-[var(--shadow-sm)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-bold text-[var(--color-ink)]">{t.add}</h3>
-            <button onClick={() => setShowForm(false)} className="text-[var(--color-ink-placeholder)] hover:text-[var(--color-ink)]"><X className="h-4 w-4" /></button>
+            <h3 className="font-bold text-[var(--color-ink)]">{editingId ? t.editTitle : t.add}</h3>
+            <button onClick={closeForm} className="text-[var(--color-ink-placeholder)] hover:text-[var(--color-ink)]"><X className="h-4 w-4" /></button>
           </div>
-          <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.nameAr}</label>
-              <input required value={form.name_ar} onChange={e => setForm(f => ({...f, name_ar: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+              <input required value={form.name_ar} placeholder={t.phNameAr} onChange={e => setForm(f => ({...f, name_ar: e.target.value}))} className={inputCls} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.nameEn}</label>
-              <input required value={form.name_en} onChange={e => setForm(f => ({...f, name_en: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <input required value={form.name_en} placeholder={t.phNameEn} onChange={e => setForm(f => ({...f, name_en: e.target.value}))} className={inputCls} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.email}</label>
-              <input required type="email" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <input required type="email" value={form.email} placeholder={t.phEmail} onChange={e => setForm(f => ({...f, email: e.target.value}))} className={inputCls} dir="ltr" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.password}</label>
-              <input required type="password" minLength={8} value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">
+                {editingId ? t.newPassword : t.password}
+              </label>
+              <input
+                type="password"
+                required={!editingId}
+                minLength={editingId ? 0 : 8}
+                value={form.password}
+                placeholder={editingId ? t.phPassword : t.phPassword}
+                onChange={e => setForm(f => ({...f, password: e.target.value}))}
+                className={inputCls}
+                dir="ltr"
+              />
             </div>
             <div>
               <MultiSelect
@@ -234,7 +282,7 @@ export default function TeachersPage() {
               />
             </div>
             <div className="sm:col-span-2 flex gap-2 justify-end pt-1">
-              <button type="button" onClick={() => setShowForm(false)} className="rounded-[var(--radius-full)] px-4 py-2 text-sm font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">{c.cancel}</button>
+              <button type="button" onClick={closeForm} className="rounded-[var(--radius-full)] px-4 py-2 text-sm font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">{c.cancel}</button>
               <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-60">
                 {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {c.save}
@@ -262,8 +310,6 @@ export default function TeachersPage() {
                       {locale === "ar" ? teacher.name_ar : teacher.name_en}
                     </p>
                     <p className="text-xs text-[var(--color-ink-secondary)] truncate">{teacher.email}</p>
-
-                    {/* Assigned sections */}
                     {expandedSections.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {expandedSections.map(s => (
@@ -273,8 +319,6 @@ export default function TeachersPage() {
                         ))}
                       </div>
                     )}
-
-                    {/* Assigned subjects */}
                     {expandedSubjects.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
                         {expandedSubjects.map(s => (
@@ -285,14 +329,23 @@ export default function TeachersPage() {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleDelete(teacher.id)}
-                    disabled={deletingId === teacher.id}
-                    className="flex items-center gap-1.5 shrink-0 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
-                  >
-                    {deletingId === teacher.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                    {c.delete}
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => openEdit(teacher)}
+                      className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      {c.edit}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(teacher.id)}
+                      disabled={deletingId === teacher.id}
+                      className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
+                    >
+                      {deletingId === teacher.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                      {c.delete}
+                    </button>
+                  </div>
                 </div>
               </div>
             );

@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { Users, Plus, Trash2, Loader2, X, ChevronDown } from "lucide-react";
+import { Users, Plus, Trash2, Pencil, Loader2, X, ChevronDown } from "lucide-react";
 
 interface Student {
   id: string;
   name_ar: string;
   name_en: string;
   email: string;
-  role: string;
   sections: string[];
   expand?: {
     sections?: ClassSection[];
@@ -26,6 +25,64 @@ interface ClassSection {
   grade_order: number;
 }
 
+const EMPTY_FORM = { name_ar: "", name_en: "", email: "", password: "", section: "" };
+
+function SectionPicker({
+  label,
+  placeholder,
+  value,
+  options,
+  getLabel,
+  onChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  options: ClassSection[];
+  getLabel: (s: ClassSection) => string;
+  onChange: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find(o => o.id === value);
+
+  return (
+    <div className="relative">
+      <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{label}</label>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm text-start focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+      >
+        <span className={selected ? "text-[var(--color-ink)]" : "text-[var(--color-ink-placeholder)]"}>
+          {selected ? getLabel(selected) : placeholder}
+        </span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[var(--color-ink-placeholder)]" />
+      </button>
+      {open && (
+        <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-card)] shadow-[var(--shadow-md)]">
+          <label className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[var(--color-surface-hover)] text-sm">
+            <input type="radio" name="section-pick" value="" checked={value === ""} onChange={() => { onChange(""); setOpen(false); }} className="accent-[var(--color-accent)]" />
+            <span className="text-[var(--color-ink-placeholder)]">—</span>
+          </label>
+          {options.map(s => (
+            <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[var(--color-surface-hover)] text-sm">
+              <input
+                type="radio"
+                name="section-pick"
+                value={s.id}
+                checked={value === s.id}
+                onChange={() => { onChange(s.id); setOpen(false); }}
+                className="accent-[var(--color-accent)]"
+              />
+              <span>{getLabel(s)}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StudentsPage() {
   const { dict, locale } = useLocale();
   const t = dict.dashboard.admin.students;
@@ -35,14 +92,10 @@ export default function StudentsPage() {
   const [allSections, setAllSections] = useState<ClassSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
-
-  const [form, setForm] = useState({
-    name_ar: "", name_en: "", email: "", password: "",
-    section: "",  // single section id
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   async function load() {
     setLoading(true);
@@ -64,22 +117,59 @@ export default function StudentsPage() {
 
   useEffect(() => { load(); }, []);
 
-  async function handleCreate(e: React.FormEvent) {
+  function openCreate() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setShowForm(true);
+  }
+
+  function openEdit(student: Student) {
+    setEditingId(student.id);
+    setForm({
+      name_ar: student.name_ar,
+      name_en: student.name_en,
+      email: student.email,
+      password: "",
+      section: student.sections?.[0] ?? "",
+    });
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
-      await pb.collection("users").create({
-        name_ar: form.name_ar,
-        name_en: form.name_en,
-        email: form.email,
-        password: form.password,
-        passwordConfirm: form.password,
-        role: "student",
-        sections: form.section ? [form.section] : [],
-        emailVisibility: true,
-      });
-      setForm({ name_ar: "", name_en: "", email: "", password: "", section: "" });
-      setShowForm(false);
+      if (editingId) {
+        const data: Record<string, unknown> = {
+          name_ar: form.name_ar,
+          name_en: form.name_en,
+          email: form.email,
+          sections: form.section ? [form.section] : [],
+        };
+        if (form.password) {
+          data.password = form.password;
+          data.passwordConfirm = form.password;
+        }
+        await pb.collection("users").update(editingId, data);
+      } else {
+        await pb.collection("users").create({
+          name_ar: form.name_ar,
+          name_en: form.name_en,
+          email: form.email,
+          password: form.password,
+          passwordConfirm: form.password,
+          role: "student",
+          sections: form.section ? [form.section] : [],
+          emailVisibility: true,
+        });
+      }
+      closeForm();
       await load();
     } finally {
       setSaving(false);
@@ -100,9 +190,7 @@ export default function StudentsPage() {
   const getSectionName = (s: ClassSection) =>
     locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
 
-  const selectedSectionName = form.section
-    ? getSectionName(allSections.find(s => s.id === form.section) ?? allSections[0])
-    : "—";
+  const inputCls = "w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]";
 
   return (
     <div className="space-y-6">
@@ -116,7 +204,7 @@ export default function StudentsPage() {
           <h2 className="text-xl font-black text-[var(--color-ink)]">{t.title}</h2>
         </div>
         <button
-          onClick={() => setShowForm(v => !v)}
+          onClick={openCreate}
           className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-4 py-2 text-sm font-bold text-white shadow-[var(--shadow-sm)] hover:bg-[var(--color-accent-hover)] transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -124,67 +212,53 @@ export default function StudentsPage() {
         </button>
       </div>
 
-      {/* Add form */}
+      {/* Create / Edit form */}
       {showForm && (
         <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] p-5 shadow-[var(--shadow-sm)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-bold text-[var(--color-ink)]">{t.add}</h3>
-            <button onClick={() => setShowForm(false)} className="text-[var(--color-ink-placeholder)] hover:text-[var(--color-ink)]"><X className="h-4 w-4" /></button>
+            <h3 className="font-bold text-[var(--color-ink)]">{editingId ? t.editTitle : t.add}</h3>
+            <button onClick={closeForm} className="text-[var(--color-ink-placeholder)] hover:text-[var(--color-ink)]"><X className="h-4 w-4" /></button>
           </div>
-          <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.nameAr}</label>
-              <input required value={form.name_ar} onChange={e => setForm(f => ({...f, name_ar: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" />
+              <input required value={form.name_ar} placeholder={t.phNameAr} onChange={e => setForm(f => ({...f, name_ar: e.target.value}))} className={inputCls} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.nameEn}</label>
-              <input required value={form.name_en} onChange={e => setForm(f => ({...f, name_en: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <input required value={form.name_en} placeholder={t.phNameEn} onChange={e => setForm(f => ({...f, name_en: e.target.value}))} className={inputCls} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.email}</label>
-              <input required type="email" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <input required type="email" value={form.email} placeholder={t.phEmail} onChange={e => setForm(f => ({...f, email: e.target.value}))} className={inputCls} dir="ltr" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.password}</label>
-              <input required type="password" minLength={8} value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" dir="ltr" />
+              <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">
+                {editingId ? t.newPassword : t.password}
+              </label>
+              <input
+                type="password"
+                required={!editingId}
+                minLength={editingId ? 0 : 8}
+                value={form.password}
+                placeholder={t.phPassword}
+                onChange={e => setForm(f => ({...f, password: e.target.value}))}
+                className={inputCls}
+                dir="ltr"
+              />
             </div>
-            {/* Section picker */}
-            <div className="sm:col-span-2 relative">
-              <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.assignedSection}</label>
-              <button
-                type="button"
-                onClick={() => setSectionDropdownOpen(v => !v)}
-                className="w-full flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm text-start focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-              >
-                <span className={form.section ? "text-[var(--color-ink)]" : "text-[var(--color-ink-placeholder)]"}>
-                  {form.section ? selectedSectionName : "—"}
-                </span>
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[var(--color-ink-placeholder)]" />
-              </button>
-              {sectionDropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-card)] shadow-[var(--shadow-md)]">
-                  <label className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[var(--color-surface-hover)] text-sm">
-                    <input type="radio" name="section" value="" checked={form.section === ""} onChange={() => { setForm(f => ({...f, section: ""})); setSectionDropdownOpen(false); }} className="accent-[var(--color-accent)]" />
-                    <span className="text-[var(--color-ink-placeholder)]">—</span>
-                  </label>
-                  {allSections.map(s => (
-                    <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[var(--color-surface-hover)] text-sm">
-                      <input
-                        type="radio"
-                        name="section"
-                        value={s.id}
-                        checked={form.section === s.id}
-                        onChange={() => { setForm(f => ({...f, section: s.id})); setSectionDropdownOpen(false); }}
-                        className="accent-[var(--color-accent)]"
-                      />
-                      <span>{getSectionName(s)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+            <div className="sm:col-span-2">
+              <SectionPicker
+                label={t.assignedSection}
+                placeholder="—"
+                value={form.section}
+                options={allSections}
+                getLabel={getSectionName}
+                onChange={id => setForm(f => ({...f, section: id}))}
+              />
             </div>
             <div className="sm:col-span-2 flex gap-2 justify-end pt-1">
-              <button type="button" onClick={() => setShowForm(false)} className="rounded-[var(--radius-full)] px-4 py-2 text-sm font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">{c.cancel}</button>
+              <button type="button" onClick={closeForm} className="rounded-[var(--radius-full)] px-4 py-2 text-sm font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">{c.cancel}</button>
               <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-60">
                 {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {c.save}
@@ -218,14 +292,23 @@ export default function StudentsPage() {
                     ))}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(student.id)}
-                  disabled={deletingId === student.id}
-                  className="flex items-center gap-1.5 shrink-0 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
-                >
-                  {deletingId === student.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                  {c.delete}
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => openEdit(student)}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"
+                  >
+                    <Pencil className="h-3 w-3" />
+                    {c.edit}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(student.id)}
+                    disabled={deletingId === student.id}
+                    className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === student.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                    {c.delete}
+                  </button>
+                </div>
               </div>
             );
           })}
