@@ -28,8 +28,8 @@ interface SectionWithStudents {
   students: Student[];
 }
 
-function normalize(s: string) {
-  return s
+function normalize(s: string | undefined | null) {
+  return (s ?? "")
     .toLowerCase()
     .replace(/[\u064b-\u065f]/g, "") // strip Arabic diacritics
     .trim();
