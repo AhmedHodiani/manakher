@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { Users, Plus, Trash2, Pencil, Loader2, X, ChevronDown } from "lucide-react";
+import { Users, Plus, Trash2, Pencil, Loader2, X, ChevronDown, ChevronUp, Search } from "lucide-react";
 
 interface Student {
   id: string;
@@ -11,9 +11,7 @@ interface Student {
   name_en: string;
   email: string;
   sections: string[];
-  expand?: {
-    sections?: ClassSection[];
-  };
+  expand?: { sections?: ClassSection[] };
 }
 
 interface ClassSection {
@@ -27,24 +25,34 @@ interface ClassSection {
 
 const EMPTY_FORM = { name_ar: "", name_en: "", email: "", password: "", section: "" };
 
+// ── Normalizer (Arabic diacritic-safe) ─────────────────────────────────────
+function normalize(s: string | undefined | null) {
+  return (s ?? "")
+    .toLowerCase()
+    .replace(/[\u064b-\u065f]/g, "")
+    .trim();
+}
+
+function matches(student: Student, query: string): boolean {
+  if (!query) return true;
+  const q = normalize(query);
+  return (
+    normalize(student.name_ar).includes(q) ||
+    normalize(student.name_en).includes(q) ||
+    normalize(student.email).includes(q)
+  );
+}
+
+// ── Section picker (radio dropdown) ────────────────────────────────────────
 function SectionPicker({
-  label,
-  placeholder,
-  value,
-  options,
-  getLabel,
-  onChange,
+  label, placeholder, value, options, getLabel, onChange,
 }: {
-  label: string;
-  placeholder: string;
-  value: string;
-  options: ClassSection[];
-  getLabel: (s: ClassSection) => string;
+  label: string; placeholder: string; value: string;
+  options: ClassSection[]; getLabel: (s: ClassSection) => string;
   onChange: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const selected = options.find(o => o.id === value);
-
   return (
     <div className="relative">
       <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{label}</label>
@@ -66,14 +74,7 @@ function SectionPicker({
           </label>
           {options.map(s => (
             <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-[var(--color-surface-hover)] text-sm">
-              <input
-                type="radio"
-                name="section-pick"
-                value={s.id}
-                checked={value === s.id}
-                onChange={() => { onChange(s.id); setOpen(false); }}
-                className="accent-[var(--color-accent)]"
-              />
+              <input type="radio" name="section-pick" value={s.id} checked={value === s.id} onChange={() => { onChange(s.id); setOpen(false); }} className="accent-[var(--color-accent)]" />
               <span>{getLabel(s)}</span>
             </label>
           ))}
@@ -83,9 +84,11 @@ function SectionPicker({
   );
 }
 
+// ── Main page ───────────────────────────────────────────────────────────────
 export default function StudentsPage() {
   const { dict, locale } = useLocale();
   const t = dict.dashboard.admin.students;
+  const ts = dict.dashboard.teacher.sections; // reuse search copy
   const c = dict.common;
 
   const [students, setStudents] = useState<Student[]>([]);
@@ -96,6 +99,11 @@ export default function StudentsPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+
+  // Search state
+  const [globalQuery, setGlobalQuery] = useState("");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sectionQueries, setSectionQueries] = useState<Record<string, string>>({});
 
   async function load() {
     setLoading(true);
@@ -117,29 +125,63 @@ export default function StudentsPage() {
 
   useEffect(() => { load(); }, []);
 
-  function openCreate() {
-    setEditingId(null);
-    setForm(EMPTY_FORM);
-    setShowForm(true);
+  // ── Group students by section ───────────────────────────────────────────
+  const grouped = useMemo(() => {
+    // Build a map: sectionId -> students[]
+    const map: Record<string, Student[]> = {};
+    for (const sec of allSections) map[sec.id] = [];
+
+    let unassigned: Student[] = [];
+    for (const student of students) {
+      const sid = student.sections?.[0];
+      if (sid && map[sid] !== undefined) {
+        map[sid].push(student);
+      } else {
+        unassigned.push(student);
+      }
+    }
+    return { map, unassigned };
+  }, [students, allSections]);
+
+  // ── Filtered view ───────────────────────────────────────────────────────
+  const globalActive = globalQuery.trim().length > 0;
+
+  const filteredSections = useMemo(() => {
+    return allSections.map(sec => ({
+      sec,
+      students: grouped.map[sec.id] ?? [],
+      globalMatches: (grouped.map[sec.id] ?? []).filter(s => matches(s, globalQuery)),
+    }));
+  }, [allSections, grouped, globalQuery]);
+
+  const filteredUnassigned = useMemo(() =>
+    grouped.unassigned.filter(s => matches(s, globalQuery)),
+  [grouped.unassigned, globalQuery]);
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
+  const getSectionName = (s: ClassSection) =>
+    locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
+
+  function toggle(id: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }
 
+  function setSectionQuery(id: string, q: string) {
+    setSectionQueries(prev => ({ ...prev, [id]: q }));
+  }
+
+  // ── Form helpers ────────────────────────────────────────────────────────
+  function openCreate() { setEditingId(null); setForm(EMPTY_FORM); setShowForm(true); }
   function openEdit(student: Student) {
     setEditingId(student.id);
-    setForm({
-      name_ar: student.name_ar,
-      name_en: student.name_en,
-      email: student.email,
-      password: "",
-      section: student.sections?.[0] ?? "",
-    });
+    setForm({ name_ar: student.name_ar, name_en: student.name_en, email: student.email, password: "", section: student.sections?.[0] ?? "" });
     setShowForm(true);
   }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditingId(null);
-    setForm(EMPTY_FORM);
-  }
+  function closeForm() { setShowForm(false); setEditingId(null); setForm(EMPTY_FORM); }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -147,26 +189,16 @@ export default function StudentsPage() {
     try {
       if (editingId) {
         const data: Record<string, unknown> = {
-          name_ar: form.name_ar,
-          name_en: form.name_en,
-          email: form.email,
+          name_ar: form.name_ar, name_en: form.name_en, email: form.email,
           sections: form.section ? [form.section] : [],
         };
-        if (form.password) {
-          data.password = form.password;
-          data.passwordConfirm = form.password;
-        }
+        if (form.password) { data.password = form.password; data.passwordConfirm = form.password; }
         await pb.collection("users").update(editingId, data);
       } else {
         await pb.collection("users").create({
-          name_ar: form.name_ar,
-          name_en: form.name_en,
-          email: form.email,
-          password: form.password,
-          passwordConfirm: form.password,
-          role: "student",
-          sections: form.section ? [form.section] : [],
-          emailVisibility: true,
+          name_ar: form.name_ar, name_en: form.name_en, email: form.email,
+          password: form.password, passwordConfirm: form.password,
+          role: "student", sections: form.section ? [form.section] : [], emailVisibility: true,
         });
       }
       closeForm();
@@ -187,11 +219,119 @@ export default function StudentsPage() {
     }
   }
 
-  const getSectionName = (s: ClassSection) =>
-    locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
-
   const inputCls = "w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]";
 
+  // ── Student row (shared between section lists and unassigned) ───────────
+  function StudentRow({ student }: { student: Student }) {
+    const name = locale === "ar" ? student.name_ar : student.name_en;
+    return (
+      <div className="flex items-center justify-between px-4 py-3 gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface-sunken)] text-xs font-bold text-[var(--color-ink-secondary)]">
+            {normalize(name).charAt(0).toUpperCase() || "؟"}
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[var(--color-ink)] truncate">{name}</p>
+            <p className="text-xs text-[var(--color-ink-secondary)] truncate">{student.email}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => openEdit(student)}
+            className="flex items-center gap-1 rounded-[var(--radius-full)] px-2.5 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"
+          >
+            <Pencil className="h-3 w-3" />{c.edit}
+          </button>
+          <button
+            onClick={() => handleDelete(student.id)}
+            disabled={deletingId === student.id}
+            className="flex items-center gap-1 rounded-[var(--radius-full)] px-2.5 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
+          >
+            {deletingId === student.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+            {c.delete}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Section accordion block ─────────────────────────────────────────────
+  function SectionBlock({ sec, allStudents, displayStudents, showLocalSearch }: {
+    sec: ClassSection;
+    allStudents: Student[];
+    displayStudents: Student[];
+    showLocalSearch: boolean;
+  }) {
+    const isOpen = globalActive || expanded.has(sec.id);
+    const localQuery = sectionQueries[sec.id] ?? "";
+    const countLabel = globalActive
+      ? `${displayStudents.length} / ${allStudents.length}`
+      : String(allStudents.length);
+
+    const localFiltered = showLocalSearch
+      ? allStudents.filter(s => matches(s, localQuery))
+      : displayStudents;
+
+    return (
+      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] overflow-hidden shadow-[var(--shadow-xs)]">
+        <button
+          onClick={() => !globalActive && toggle(sec.id)}
+          className={[
+            "w-full flex items-center justify-between px-5 py-4 text-start transition-colors",
+            globalActive ? "cursor-default" : "hover:bg-[var(--color-surface-hover)]",
+          ].join(" ")}
+        >
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-role-admin-bold)]"
+              style={{ background: "var(--color-role-admin-bg)" }}>
+              <Users className="h-4 w-4" />
+            </span>
+            <span className="font-bold text-[var(--color-ink)]">{getSectionName(sec)}</span>
+            <span className="text-xs font-semibold text-[var(--color-ink-secondary)] bg-[var(--color-surface-sunken)] rounded-full px-2 py-0.5">
+              {countLabel} {locale === "ar" ? "طالبة" : "students"}
+            </span>
+          </div>
+          {!globalActive && (
+            <span className="text-[var(--color-ink-secondary)] shrink-0">
+              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </span>
+          )}
+        </button>
+
+        {isOpen && (
+          <div className="border-t border-[var(--color-border-subtle)]">
+            {/* Per-section search — only when not in global mode */}
+            {showLocalSearch && allStudents.length > 0 && (
+              <div className="px-4 pt-3 pb-2 relative">
+                <Search className="absolute top-1/2 mt-0.5 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-ink-placeholder)]"
+                  style={{ insetInlineStart: "1.25rem" }} />
+                <input
+                  type="search"
+                  value={localQuery}
+                  onChange={e => setSectionQuery(sec.id, e.target.value)}
+                  placeholder={ts.searchSection}
+                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] py-2 text-xs text-[var(--color-ink)] placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  style={{ paddingInlineStart: "2.25rem", paddingInlineEnd: "0.75rem" }}
+                />
+              </div>
+            )}
+
+            {allStudents.length === 0 ? (
+              <p className="px-5 py-3 text-sm text-[var(--color-ink-disabled)]">{t.empty}</p>
+            ) : localFiltered.length === 0 ? (
+              <p className="px-5 py-3 text-sm text-[var(--color-ink-disabled)]">{ts.noMatch}</p>
+            ) : (
+              <div className="divide-y divide-[var(--color-border-subtle)]">
+                {localFiltered.map(s => <StudentRow key={s.id} student={s} />)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
 
@@ -207,8 +347,7 @@ export default function StudentsPage() {
           onClick={openCreate}
           className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-4 py-2 text-sm font-bold text-white shadow-[var(--shadow-sm)] hover:bg-[var(--color-accent-hover)] transition-colors"
         >
-          <Plus className="h-4 w-4" />
-          {t.add}
+          <Plus className="h-4 w-4" />{t.add}
         </button>
       </div>
 
@@ -237,31 +376,23 @@ export default function StudentsPage() {
                 {editingId ? t.newPassword : t.password}
               </label>
               <input
-                type="password"
-                required={!editingId}
-                minLength={editingId ? 0 : 8}
-                value={form.password}
-                placeholder={t.phPassword}
+                type="password" required={!editingId} minLength={editingId ? 0 : 8}
+                value={form.password} placeholder={t.phPassword}
                 onChange={e => setForm(f => ({...f, password: e.target.value}))}
-                className={inputCls}
-                dir="ltr"
+                className={inputCls} dir="ltr"
               />
             </div>
             <div className="sm:col-span-2">
               <SectionPicker
-                label={t.assignedSection}
-                placeholder="—"
-                value={form.section}
-                options={allSections}
-                getLabel={getSectionName}
+                label={t.assignedSection} placeholder="—" value={form.section}
+                options={allSections} getLabel={getSectionName}
                 onChange={id => setForm(f => ({...f, section: id}))}
               />
             </div>
             <div className="sm:col-span-2 flex gap-2 justify-end pt-1">
               <button type="button" onClick={closeForm} className="rounded-[var(--radius-full)] px-4 py-2 text-sm font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">{c.cancel}</button>
               <button type="submit" disabled={saving} className="flex items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-role-admin-bold)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-60">
-                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                {c.save}
+                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}{c.save}
               </button>
             </div>
           </form>
@@ -274,45 +405,87 @@ export default function StudentsPage() {
       ) : students.length === 0 ? (
         <p className="py-16 text-center text-sm text-[var(--color-ink-disabled)]">{t.empty}</p>
       ) : (
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] overflow-hidden shadow-[var(--shadow-xs)] divide-y divide-[var(--color-border-subtle)]">
-          {students.map(student => {
-            const expandedSections = student.expand?.sections ?? [];
-            return (
-              <div key={student.id} className="flex items-center justify-between px-4 py-3.5 gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--color-ink)] truncate">
-                    {locale === "ar" ? student.name_ar : student.name_en}
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    <p className="text-xs text-[var(--color-ink-secondary)] truncate">{student.email}</p>
-                    {expandedSections.map(s => (
-                      <span key={s.id} className="rounded-[var(--radius-full)] bg-[var(--color-role-student-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-role-student-text)]">
-                        {locale === "ar" ? `${s.grade_ar} ${s.section_ar}` : `${s.grade_en} ${s.section_en}`}
-                      </span>
+        <>
+          {/* Global search */}
+          <div className="relative">
+            <Search
+              className="absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-ink-placeholder)]"
+              style={{ insetInlineStart: "0.875rem" }}
+            />
+            <input
+              type="search"
+              value={globalQuery}
+              onChange={e => setGlobalQuery(e.target.value)}
+              placeholder={ts.searchAll}
+              className="w-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-card)] py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] shadow-[var(--shadow-xs)]"
+              style={{ paddingInlineStart: "2.5rem", paddingInlineEnd: "1rem" }}
+            />
+          </div>
+
+          {/* Section accordions */}
+          <div className="space-y-3">
+            {filteredSections.map(({ sec, students: secStudents, globalMatches }) => {
+              if (globalActive && globalMatches.length === 0) return null;
+              return (
+                <SectionBlock
+                  key={sec.id}
+                  sec={sec}
+                  allStudents={secStudents}
+                  displayStudents={globalMatches}
+                  showLocalSearch={!globalActive}
+                />
+              );
+            })}
+
+            {/* Unassigned students */}
+            {(globalActive ? filteredUnassigned : grouped.unassigned).length > 0 && (
+              <div className="rounded-[var(--radius-xl)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-card)] overflow-hidden shadow-[var(--shadow-xs)]">
+                <button
+                  onClick={() => !globalActive && toggle("__unassigned__")}
+                  className={[
+                    "w-full flex items-center justify-between px-5 py-4 text-start transition-colors",
+                    globalActive ? "cursor-default" : "hover:bg-[var(--color-surface-hover)]",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-ink-secondary)]"
+                      style={{ background: "var(--color-surface-sunken)" }}>
+                      <Users className="h-4 w-4" />
+                    </span>
+                    <span className="font-bold text-[var(--color-ink-secondary)]">
+                      {locale === "ar" ? "بدون فصل" : "Unassigned"}
+                    </span>
+                    <span className="text-xs font-semibold text-[var(--color-ink-secondary)] bg-[var(--color-surface-sunken)] rounded-full px-2 py-0.5">
+                      {globalActive
+                        ? `${filteredUnassigned.length} / ${grouped.unassigned.length}`
+                        : grouped.unassigned.length}
+                    </span>
+                  </div>
+                  {!globalActive && (
+                    <span className="text-[var(--color-ink-secondary)] shrink-0">
+                      {expanded.has("__unassigned__") ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </span>
+                  )}
+                </button>
+
+                {(globalActive || expanded.has("__unassigned__")) && (
+                  <div className="border-t border-[var(--color-border-subtle)] divide-y divide-[var(--color-border-subtle)]">
+                    {(globalActive ? filteredUnassigned : grouped.unassigned).map(s => (
+                      <StudentRow key={s.id} student={s} />
                     ))}
                   </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => openEdit(student)}
-                    className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"
-                  >
-                    <Pencil className="h-3 w-3" />
-                    {c.edit}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(student.id)}
-                    disabled={deletingId === student.id}
-                    className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-danger-subtle)] hover:text-[var(--color-danger-text)] transition-colors disabled:opacity-50"
-                  >
-                    {deletingId === student.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                    {c.delete}
-                  </button>
-                </div>
+                )}
               </div>
-            );
-          })}
-        </div>
+            )}
+
+            {/* Global search empty state */}
+            {globalActive &&
+              filteredSections.every(d => d.globalMatches.length === 0) &&
+              filteredUnassigned.length === 0 && (
+                <p className="text-sm text-[var(--color-ink-secondary)] py-4 text-center">{c.noResults}</p>
+              )}
+          </div>
+        </>
       )}
     </div>
   );
