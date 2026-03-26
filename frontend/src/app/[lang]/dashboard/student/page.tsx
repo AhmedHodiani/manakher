@@ -1,43 +1,29 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
+import { useLocale } from "@/context/locale-context";
 import { BookOpen, FileText, ClipboardList, Bell } from "lucide-react";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const { dict } = useLocale();
+  const t = dict.dashboard.student;
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Student Dashboard
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-900">{t.title}</h2>
         <p className="text-sm text-slate-500">
-          Welcome back, {user?.name || "Student"}
+          {t.welcome}
+          {user?.name ? ` ${user.name}` : ""}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardCard
-          icon={<BookOpen className="h-5 w-5 text-slate-600" />}
-          label="My Subjects"
-          value="--"
-        />
-        <DashboardCard
-          icon={<FileText className="h-5 w-5 text-slate-600" />}
-          label="Homework Due"
-          value="--"
-        />
-        <DashboardCard
-          icon={<ClipboardList className="h-5 w-5 text-slate-600" />}
-          label="Upcoming Quizzes"
-          value="--"
-        />
-        <DashboardCard
-          icon={<Bell className="h-5 w-5 text-slate-600" />}
-          label="Announcements"
-          value="--"
-        />
+        <DashboardCard icon={<BookOpen className="h-5 w-5 text-slate-600" />} label="--" value="--" />
+        <DashboardCard icon={<FileText className="h-5 w-5 text-slate-600" />} label="--" value="--" />
+        <DashboardCard icon={<ClipboardList className="h-5 w-5 text-slate-600" />} label="--" value="--" />
+        <DashboardCard icon={<Bell className="h-5 w-5 text-slate-600" />} label="--" value="--" />
       </div>
     </div>
   );

@@ -56,15 +56,15 @@ export function getUserRole(): UserRole | null {
   return user?.role ?? null;
 }
 
-export function getRoleDashboardPath(role: UserRole): string {
+export function getRoleDashboardPath(role: UserRole, locale = "ar"): string {
   switch (role) {
     case "admin":
-      return "/dashboard/admin";
+      return `/${locale}/dashboard/admin`;
     case "teacher":
-      return "/dashboard/teacher";
+      return `/${locale}/dashboard/teacher`;
     case "student":
-      return "/dashboard/student";
+      return `/${locale}/dashboard/student`;
     default:
-      return "/login";
+      return `/${locale}/login`;
   }
 }

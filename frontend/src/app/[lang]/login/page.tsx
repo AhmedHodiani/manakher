@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { useLocale } from "@/context/locale-context";
 import { getRoleDashboardPath } from "@/lib/auth";
 import { LogIn, Loader2, AlertCircle } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
+  const { dict, locale, switchLocale } = useLocale();
   const router = useRouter();
 
   async function handleSubmit(e: FormEvent) {
@@ -21,27 +23,40 @@ export default function LoginPage() {
 
     try {
       const user = await login(email, password);
-      const dashboardPath = getRoleDashboardPath(user.role);
+      const dashboardPath = getRoleDashboardPath(user.role, locale);
       router.push(dashboardPath);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Invalid email or password.";
+        err instanceof Error
+          ? err.message
+          : dict.login.invalidCredentials;
       setError(message);
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const t = dict.login;
+  const nextLocale = locale === "ar" ? "en" : "ar";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm">
+        {/* Language switcher */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => switchLocale(nextLocale)}
+            className="text-sm text-slate-500 hover:text-slate-800 transition-colors"
+          >
+            {dict.common.switchLang}
+          </button>
+        </div>
+
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Manakher
+            {t.title}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Sign in to your account
-          </p>
+          <p className="mt-1 text-sm text-slate-500">{t.subtitle}</p>
         </div>
 
         <form
@@ -60,7 +75,7 @@ export default function LoginPage() {
               htmlFor="email"
               className="mb-1.5 block text-sm font-medium text-slate-700"
             >
-              Email
+              {t.emailLabel}
             </label>
             <input
               id="email"
@@ -69,7 +84,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              placeholder="you@school.edu"
+              placeholder={t.emailPlaceholder}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </div>
@@ -79,7 +94,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="mb-1.5 block text-sm font-medium text-slate-700"
             >
-              Password
+              {t.passwordLabel}
             </label>
             <input
               id="password"
@@ -88,7 +103,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              placeholder="Enter your password"
+              placeholder={t.passwordPlaceholder}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </div>
@@ -103,7 +118,7 @@ export default function LoginPage() {
             ) : (
               <LogIn className="h-4 w-4" />
             )}
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? t.submittingButton : t.submitButton}
           </button>
         </form>
       </div>

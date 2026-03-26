@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Tajawal } from "next/font/google";
 import { AuthProvider } from "@/context/auth-context";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const tajawal = Tajawal({
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-tajawal",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,11 +20,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Default lang/dir to Arabic (the default locale).
+  // The [lang]/layout.tsx will override these via HtmlAttributes on the client.
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="ar" dir="rtl" className={tajawal.variable} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-slate-50">
         <AuthProvider>{children}</AuthProvider>
       </body>

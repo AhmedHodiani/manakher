@@ -79,11 +79,32 @@ It contains a short and clear to-do list of milestones.
 | 17 | **Admin cannot access teacher dashboard** | Log in as admin, manually navigate to `/dashboard/teacher` | Redirected to `/dashboard/admin` |
 | 18 | **Admin cannot access student dashboard** | Log in as admin, manually navigate to `/dashboard/student` | Redirected to `/dashboard/admin` |
 
-### [NOT_STARTED] Milestone 2: support 2 languanges arabic and english & RTL Architecture (Arabic First)
+### [HANDOFF] Milestone 2: support 2 languanges arabic and english & RTL Architecture (Arabic First)
 - **Internationalization (i18n) Setup**: Configure the Next.js foundation for seamless switching between Arabic (Default/Primary) and English.
 - **RTL Layout Engine**: Implement a robust Right-to-Left (RTL) CSS architecture that applies globally when Arabic is active.
 - **Arabic-First Design System**: Ensure all base typography, component structures, and alignments are built specifically for Arabic reading patterns first, before gracefully adapting to Left-to-Right (LTR) for English.
 - **Translation Management**: Establish the locale dictionaries for all static text across the application.
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26):
+- **What was done:**
+  - Created `src/dictionaries/ar.json` and `src/dictionaries/en.json` — translation dictionaries for all static text (login, dashboard, roles, common).
+  - Created `src/lib/locale-config.ts` — **client-safe** locale config: `Locale` type, `LOCALES`, `DEFAULT_LOCALE`, `hasLocale`, `getDir`. No `"server-only"` dependency.
+  - Created `src/lib/i18n.ts` — **server-only** module (`import "server-only"`) that re-exports from `locale-config` and adds `getDictionary` (dynamic JSON import per locale).
+  - Created `src/context/locale-context.tsx` — client context `LocaleProvider` + `useLocale` hook. Provides `locale`, `dict`, `dir`, and `switchLocale` (swaps locale segment in pathname, pushes with router).
+  - Created `src/components/html-attributes.tsx` — client component that sets `document.documentElement.lang` and `.dir` via `useEffect`. Needed because nested layouts can't render `<html>` in Next.js App Router.
+  - Restructured `src/app/` — all pages moved under `src/app/[lang]/`: `login/page.tsx`, `dashboard/layout.tsx`, `dashboard/page.tsx`, `dashboard/admin/page.tsx`, `dashboard/teacher/page.tsx`, `dashboard/student/page.tsx`. Old non-locale routes deleted.
+  - `src/app/[lang]/layout.tsx` — server component, fetches dictionary, wraps with `LocaleProvider`, mounts `HtmlAttributes`. Uses `generateStaticParams` to pre-render both locales.
+  - `src/app/layout.tsx` (root) — loads Tajawal font, sets default `lang="ar" dir="rtl"` on `<html>` (overridden client-side per locale). Wraps with `AuthProvider`.
+  - `src/app/page.tsx` — redirects to `/{DEFAULT_LOCALE}` (i.e. `/ar`).
+  - Updated `src/proxy.ts` — locale-aware: detects locale prefix, redirects non-prefixed paths to default locale, enforces auth + RBAC using locale-prefixed paths.
+  - Updated `src/lib/auth.ts` — `getRoleDashboardPath(role, locale)` now accepts locale param, returns `/{locale}/dashboard/{role}`.
+  - Installed Tajawal Arabic font from Google Fonts (`next/font/google`). Added to `globals.css` as `--font-tajawal`.
+  - Build passes with zero errors. All 12 locale-prefixed routes generated: `/ar/*` and `/en/*`.
+- **Issues/Lessons:**
+  - `"server-only"` in `i18n.ts` caused build error when `locale-context.tsx` (a client component) imported from it. Fixed by splitting: `locale-config.ts` (client-safe, no server-only) vs `i18n.ts` (server-only, contains getDictionary).
+  - In Next.js App Router, nested layouts cannot render `<html>/<body>` — only the root layout can. Used `HtmlAttributes` client component with `useEffect` to update `lang`/`dir` on `document.documentElement` instead.
 
 ### [NOT_STARTED] Milestone 3: Design System & UI/UX Guidelines
 - Construct the global CSS and Tailwind theme rules enforcing a minimal, gentle, and clean aesthetic.

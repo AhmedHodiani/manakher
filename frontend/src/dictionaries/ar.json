@@ -1,0 +1,38 @@
+{
+  "common": {
+    "appName": "مناخر",
+    "signOut": "تسجيل الخروج",
+    "loading": "جاري التحميل...",
+    "switchLang": "English"
+  },
+  "roles": {
+    "admin": "مدير",
+    "teacher": "معلم",
+    "student": "طالب"
+  },
+  "login": {
+    "title": "مناخر",
+    "subtitle": "سجّل دخولك إلى حسابك",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "you@school.edu",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "submitButton": "تسجيل الدخول",
+    "submittingButton": "جاري الدخول...",
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+  },
+  "dashboard": {
+    "admin": {
+      "title": "لوحة تحكم المدير",
+      "welcome": "أهلاً بك في لوحة تحكم المدير."
+    },
+    "teacher": {
+      "title": "لوحة تحكم المعلم",
+      "welcome": "أهلاً بك في لوحة تحكم المعلم."
+    },
+    "student": {
+      "title": "لوحة تحكم الطالب",
+      "welcome": "أهلاً بك في لوحة تحكم الطالب."
+    }
+  }
+}

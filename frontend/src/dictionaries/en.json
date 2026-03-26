@@ -1,0 +1,38 @@
+{
+  "common": {
+    "appName": "Manakher",
+    "signOut": "Sign out",
+    "loading": "Loading...",
+    "switchLang": "عربي"
+  },
+  "roles": {
+    "admin": "Admin",
+    "teacher": "Teacher",
+    "student": "Student"
+  },
+  "login": {
+    "title": "Manakher",
+    "subtitle": "Sign in to your account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@school.edu",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submitButton": "Sign in",
+    "submittingButton": "Signing in...",
+    "invalidCredentials": "Invalid email or password."
+  },
+  "dashboard": {
+    "admin": {
+      "title": "Admin Dashboard",
+      "welcome": "Welcome to the admin dashboard."
+    },
+    "teacher": {
+      "title": "Teacher Dashboard",
+      "welcome": "Welcome to the teacher dashboard."
+    },
+    "student": {
+      "title": "Student Dashboard",
+      "welcome": "Welcome to the student dashboard."
+    }
+  }
+}

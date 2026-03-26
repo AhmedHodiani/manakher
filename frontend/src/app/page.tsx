@@ -1,28 +1,7 @@
-"use client";
+import { redirect } from "next/navigation";
+import { DEFAULT_LOCALE } from "@/lib/locale-config";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { getRoleDashboardPath } from "@/lib/auth";
-import { Loader2 } from "lucide-react";
-
-export default function Home() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        router.replace(getRoleDashboardPath(user.role));
-      } else {
-        router.replace("/login");
-      }
-    }
-  }, [isLoading, user, router]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-    </div>
-  );
+// The root path always redirects to the default locale (Arabic).
+export default function RootPage() {
+  redirect(`/${DEFAULT_LOCALE}`);
 }

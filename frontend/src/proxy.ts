@@ -2,15 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import type { NextProxy } from "next/server";
 
 const PB_AUTH_COOKIE = "pb_auth";
+const LOCALES = ["ar", "en"] as const;
+type Locale = (typeof LOCALES)[number];
+const DEFAULT_LOCALE: Locale = "ar";
 
-const publicPaths = ["/login"];
+const publicPathSegments = ["login"];
 
-// Map dashboard path prefixes to the role that is allowed to access them
+// Role -> dashboard path suffix (without locale prefix)
 const rolePaths: Record<string, string> = {
   "/dashboard/admin": "admin",
   "/dashboard/teacher": "teacher",
   "/dashboard/student": "student",
 };
+
+function getLocaleFromPathname(pathname: string): Locale | null {
+  const segment = pathname.split("/")[1];
+  return LOCALES.includes(segment as Locale) ? (segment as Locale) : null;
+}
+
+function stripLocale(pathname: string, locale: Locale): string {
+  return pathname.slice(`/${locale}`.length) || "/";
+}
 
 function getAuthFromCookie(
   request: NextRequest
@@ -26,7 +38,6 @@ function getAuthFromCookie(
 
     if (!token || !role) return null;
 
-    // Decode JWT to check expiry
     const payload = JSON.parse(atob(token.split(".")[1]));
     const expired = payload.exp ? payload.exp * 1000 < Date.now() : false;
 
@@ -39,26 +50,39 @@ function getAuthFromCookie(
 export const proxy: NextProxy = (request: NextRequest) => {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
+  // --- Step 1: Locale detection / redirect ---
+  const locale = getLocaleFromPathname(pathname);
+
+  if (!locale) {
+    // No locale prefix — redirect to default locale
+    const redirectUrl = new URL(
+      `/${DEFAULT_LOCALE}${pathname}`,
+      request.url
+    );
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // --- Step 2: Strip locale to get the logical path ---
+  const logicalPath = stripLocale(pathname, locale);
+
+  // Allow public paths (login)
+  if (publicPathSegments.some((seg) => logicalPath.startsWith(`/${seg}`))) {
     return NextResponse.next();
   }
 
+  // --- Step 3: Auth check ---
   const auth = getAuthFromCookie(request);
 
-  // Not authenticated or expired -> login
   if (!auth || auth.expired) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL(`/${locale}/login`, request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based route enforcement
+  // --- Step 4: Role-based route enforcement ---
   for (const [pathPrefix, requiredRole] of Object.entries(rolePaths)) {
-    if (pathname.startsWith(pathPrefix) && auth.role !== requiredRole) {
-      // Redirect to the user's own dashboard
-      const correctPath = `/dashboard/${auth.role}`;
-      const redirectUrl = new URL(correctPath, request.url);
-      return NextResponse.redirect(redirectUrl);
+    if (logicalPath.startsWith(pathPrefix) && auth.role !== requiredRole) {
+      const correctPath = `/${locale}/dashboard/${auth.role}`;
+      return NextResponse.redirect(new URL(correctPath, request.url));
     }
   }
 
