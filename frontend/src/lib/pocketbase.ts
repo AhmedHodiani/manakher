@@ -28,3 +28,8 @@ if (typeof document !== "undefined") {
 }
 
 export default pb;
+
+/** Named export for use in components that prefer named imports. */
+export function getPocketBase() {
+  return pb;
+}

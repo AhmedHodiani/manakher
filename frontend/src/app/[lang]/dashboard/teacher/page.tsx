@@ -1,16 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
-import { BookOpen, Users, FileText, Bell } from "lucide-react";
+import { getPocketBase } from "@/lib/pocketbase";
+import { BookOpen, Users, FileText, Clock } from "lucide-react";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
   const { dict, locale } = useLocale();
   const t = dict.dashboard.teacher;
   const displayName = user ? getDisplayName(user, locale) : "";
+
+  const [subjectCount, setSubjectCount] = useState<number | string>("—");
+  const [studentCount, setStudentCount] = useState<number | string>("—");
+  const [hwCount, setHwCount] = useState<number | string>("—");
+  const [pendingCount, setPendingCount] = useState<number | string>("—");
+
+  useEffect(() => {
+    if (!user) return;
+    const pb = getPocketBase();
+
+    // Count unique subjects assigned to this teacher
+    const subjects: string[] = (user as any).subjects ?? [];
+    setSubjectCount(subjects.length);
+
+    // Count students in teacher's sections
+    const sections: string[] = (user as any).sections ?? [];
+    if (sections.length > 0) {
+      const sectionFilter = sections.map((id) => `sections.id = "${id}"`).join(" || ");
+      pb.collection("users")
+        .getList(1, 1, { filter: `role = "student" && (${sectionFilter})` })
+        .then((r) => setStudentCount(r.totalItems))
+        .catch(() => setStudentCount("—"));
+    } else {
+      setStudentCount(0);
+    }
+
+    // Count homework posted by this teacher
+    pb.collection("homework")
+      .getList(1, 1, { filter: `teacher = "${user.id}"` })
+      .then((r) => setHwCount(r.totalItems))
+      .catch(() => setHwCount("—"));
+
+    // Count submitted (ungraded) submissions for this teacher's homework
+    pb.collection("submissions")
+      .getList(1, 1, {
+        filter: `status = "submitted" && homework.teacher = "${user.id}"`,
+      })
+      .then((r) => setPendingCount(r.totalItems))
+      .catch(() => setPendingCount("—"));
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -22,7 +64,6 @@ export default function TeacherDashboard() {
       >
         <div className="absolute rounded-full opacity-10" style={{ width: 260, height: 260, background: "#fff", top: -80, insetInlineEnd: -60 }} />
         <div className="absolute rounded-full opacity-[0.07]" style={{ width: 140, height: 140, background: "#fff", bottom: -40, insetInlineStart: 40 }} />
-
         <div className="relative z-10">
           <p className="text-teal-200 text-sm font-semibold mb-1">
             {dict.dashboard.greeting} {displayName}
@@ -42,10 +83,10 @@ export default function TeacherDashboard() {
           {locale === "ar" ? "نظرة عامة" : "Overview"}
         </h3>
         <div className="stat-card-group grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={<BookOpen />} label={t.stats.subjects} value="—" />
-          <StatCard icon={<Users />} label={t.stats.students} value="—" />
-          <StatCard icon={<FileText />} label={t.stats.assignments} value="—" />
-          <StatCard icon={<Bell />} label={t.stats.pending} value="—" />
+          <StatCard icon={<BookOpen />} label={t.stats.subjects} value={subjectCount} />
+          <StatCard icon={<Users />} label={t.stats.students} value={studentCount} />
+          <StatCard icon={<FileText />} label={t.stats.assignments} value={hwCount} />
+          <StatCard icon={<Clock />} label={t.stats.pending} value={pendingCount} />
         </div>
       </div>
 

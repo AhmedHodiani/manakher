@@ -175,7 +175,7 @@ It contains a short and clear to-do list of milestones.
   - MCP PocketBase tool still drops auth between calls — always re-authenticate with curl and use `_superusers` collection endpoint, not `/api/admins/`.
   - `bg-surface-dotted` is a custom CSS class, not a Tailwind utility — don't try to use it with Tailwind's JIT scanning, it's defined in `globals.css` directly.
 
-### [INPROGRESS] Milestone 4: Admin Setup - School Structure & Users
+### [HANDOFF] Milestone 4: Admin Setup - School Structure & Users
 - Add classes/grades (صف) and sections (شعبة).
 - Add subjects (المقررات).
 - Add teachers -> assign to class-section(s) and subject(s).
@@ -183,7 +183,22 @@ It contains a short and clear to-do list of milestones.
 
 #### Iteration Log
 
-**Iteration 1** (2026-03-26) — schema confirmed + full admin frontend built:
+**Iteration 1** (2026-03-26) — PocketBase collections + full teacher dashboard built:
+- **What was done:**
+  - Created 4 new PocketBase collections: `materials`, `homework`, `submissions`, `announcements`. All with proper API rules (teachers can create/edit their own records, students can submit, admins can delete anything).
+  - Added `getPocketBase()` named export to `lib/pocketbase.ts` for cleaner imports.
+  - Extended `ar.json` + `en.json` dictionaries with full teacher dashboard keys (nav, sections, materials, homework, announcements).
+  - Created `src/app/[lang]/dashboard/teacher/layout.tsx` — sidebar nav with 5 links (Overview, My Sections, Materials, Homework, Announcements). Uses teal teacher role colors. Desktop sidebar + mobile bottom tab bar.
+  - Rewrote `teacher/page.tsx` — live stat counts from PocketBase (subjects count from user record, student count via filter on assigned sections, homework count, pending submissions count).
+  - Created `teacher/sections/page.tsx` — collapsible accordion per section, shows student roster with avatar initials, fully bilingual.
+  - Created `teacher/materials/page.tsx` — CRUD for learning materials. Filter by section/subject. Supports types: text (with textarea), link, video (with URL field), file. Expand query shows section+subject names.
+  - Created `teacher/homework/page.tsx` — CRUD for homework assignments. Expandable submissions panel per homework. Teachers can grade submissions inline (grade + feedback). Status badge updates to "graded".
+  - Created `teacher/announcements/page.tsx` — CRUD for announcements. Scope: "global" (all my sections) or "section" (specific section). Section picker shown conditionally.
+  - Build: 32 pages, zero TypeScript errors.
+- **Struggles / watch out:**
+  - MCP auth drops between calls — always re-auth via curl with `_superusers` for any PocketBase admin operations.
+  - PocketBase `expand` on relation fields requires the relation to be defined with proper `collectionId` on the field schema. Used `pbc_3098803551` (class_sections) and `pbc_3949707534` (subjects) when creating collections via curl.
+  - `submissions` filter `homework.teacher = "${user.id}"` works via PocketBase relation traversal — no join needed.
 - **What was done:**
   - PocketBase schema confirmed: `class_sections` (20 records), `subjects` (9 records), `users` with `sections` (multi-relation maxSelect 999) + `subjects` (multi-relation maxSelect 999). Single `section` field was removed by user — both teachers and students now use `sections`.
   - Extended `ar.json` + `en.json` dictionaries with full admin management keys: nav labels, form field labels, confirm/empty strings, plus common actions (save, cancel, delete, back, search).
@@ -198,7 +213,15 @@ It contains a short and clear to-do list of milestones.
   - Admin layout had a TypeScript error: `keyof` on `ReturnType<typeof useLocale>` produces `string | number | symbol` which isn't assignable to React `Key`. Fixed by using a literal `NavKey` type instead.
   - PocketBase MCP drops auth between calls — always use curl with `_superusers` auth endpoint directly.
 
-### [NOT_STARTED] Milestone 5: Teacher Setup & Dashboard
+**Iteration 2** (2026-03-26) — students seeded:
+- **What was done:**
+  - Seeded 40 student records (2 per section across all 20 sections, grades 1–10, sections أ+ب). All passwords: `Student@12345`. Realistic Arabic/English names.
+  - Total students in DB: 41 (40 seeded + 1 original test student `student@school.edu`).
+  - Milestone status updated to HANDOFF.
+- **Struggles / watch out:**
+  - MCP auto-cancel on parallel calls is a cosmetic SDK error — the record is still written. Retrying causes a "Value must be unique" error confirming the first write succeeded.
+
+### [INPROGRESS] Milestone 5: Teacher Setup & Dashboard
 - View assigned class-sections and students.
 - Post learning materials (text, docs, videos, links, images) for a class or section(s). *Note: cannot assign the same material/homework across different classes (صفوف) at the same time, must be done separately. Can be done together for sections of the same class.*
 - Assign homework for full class-section(s). Submission types: online or on-site.
