@@ -7,6 +7,8 @@ import { getPocketBase } from "@/lib/pocketbase";
 import { BookOpen, Plus, Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { RichContent, stripHtml } from "@/components/ui/rich-content";
 
 interface Section {
   id: string;
@@ -236,12 +238,11 @@ export default function TeacherMaterialsPage() {
             {form.type === "text" && (
               <div className="sm:col-span-2 space-y-1">
                 <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.body}</label>
-                <textarea
+                <RichEditor
                   value={form.body}
-                  onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+                  onChange={(html) => setForm((f) => ({ ...f, body: html }))}
                   placeholder={t.phBody}
-                  rows={4}
-                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
+                  dir={locale === "ar" ? "rtl" : "ltr"}
                 />
               </div>
             )}
@@ -293,7 +294,7 @@ export default function TeacherMaterialsPage() {
                     </button>
                   </div>
                 </div>
-                {m.body && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-2">{m.body.replace(/<[^>]+>/g, "")}</p>}
+                {m.body && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-2">{stripHtml(m.body)}</p>}
                 {m.link_url && (
                   <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mt-1 block text-sm text-[var(--color-accent-text)] underline truncate">
                     {m.link_url}

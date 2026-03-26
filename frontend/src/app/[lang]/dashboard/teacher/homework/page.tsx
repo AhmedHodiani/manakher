@@ -9,6 +9,8 @@ import { FileText, Plus, Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucid
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { RichContent, stripHtml } from "@/components/ui/rich-content";
 
 interface Section {
   id: string;
@@ -280,7 +282,12 @@ export default function TeacherHomeworkPage() {
             </div>
             <div className="sm:col-span-2 space-y-1">
               <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.description}</label>
-              <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder={t.phDescription} rows={3} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none" />
+              <RichEditor
+                value={form.description}
+                onChange={(html) => setForm((f) => ({ ...f, description: html }))}
+                placeholder={t.phDescription}
+                dir={locale === "ar" ? "rtl" : "ltr"}
+              />
             </div>
           </div>
           <div className="flex gap-2 justify-end">
@@ -360,7 +367,7 @@ export default function TeacherHomeworkPage() {
                             </div>
                             {sub.content && (
                               <p className="text-sm text-[var(--color-ink-secondary)] bg-[var(--color-surface-sunken)] rounded-[var(--radius-md)] px-3 py-2">
-                                {sub.content.replace(/<[^>]+>/g, "")}
+                                {stripHtml(sub.content)}
                               </p>
                             )}
                             <div className="flex gap-2 items-end flex-wrap">

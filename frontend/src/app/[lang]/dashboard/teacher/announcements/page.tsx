@@ -7,6 +7,8 @@ import { getPocketBase } from "@/lib/pocketbase";
 import { Bell, Plus, Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { stripHtml } from "@/components/ui/rich-content";
 
 interface Section {
   id: string;
@@ -82,7 +84,7 @@ export default function TeacherAnnouncementsPage() {
   }
 
   function openEdit(a: Announcement) {
-    setForm({ title: a.title, body: a.body.replace(/<[^>]+>/g, ""), scope: a.scope, section: a.section ?? "" });
+    setForm({ title: a.title, body: a.body, scope: a.scope, section: a.section ?? "" });
     setEditingId(a.id);
     setShowForm(true);
   }
@@ -181,12 +183,11 @@ export default function TeacherAnnouncementsPage() {
 
           <div className="space-y-1">
             <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.body}</label>
-            <textarea
+            <RichEditor
               value={form.body}
-              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+              onChange={(html) => setForm((f) => ({ ...f, body: html }))}
               placeholder={t.phBody}
-              rows={4}
-              className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
+              dir={locale === "ar" ? "rtl" : "ltr"}
             />
           </div>
 
@@ -235,7 +236,7 @@ export default function TeacherAnnouncementsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-3">{a.body.replace(/<[^>]+>/g, "")}</p>
+                <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-3">{stripHtml(a.body)}</p>
               </div>
             );
           })}
