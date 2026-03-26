@@ -141,6 +141,24 @@ It contains a short and clear to-do list of milestones.
   - Tailwind v4 uses `@theme inline { ... }` (not `theme: { extend: {} }` in a config file). All custom tokens must be CSS variables inside that block.
   - Using CSS variable references in Tailwind class strings (e.g. `bg-[var(--color-accent)]`) works perfectly in v4 with no extra config.
 
+**Iteration 2** (2026-03-26) — visual overhaul:
+- **What was done:**
+  - Full design system overhaul requested: platform was too muted/corporate, needed vibrant + child-appropriate while staying high-quality and structured.
+  - **globals.css**: Replaced cold grey palette with warm ivory base (`#faf8f5`). Accent shifted from flat corporate blue → rich deep violet (`#5b21b6`). Added a full role color system: admin=violet, teacher=teal/emerald, student=amber/orange. Added 4 distinct stat card color slots (sky blue, green, pink, yellow) driven by CSS `nth-child` rules. Added `--shadow-lg` and `--radius-2xl` tokens. Font weight headings bumped to `font-weight: 700`.
+  - **stat-card.tsx**: Redesigned — icon area enlarged to 48×48, icons scale to 24px via `[&>svg]` selector. Number enlarged to `text-3xl font-bold`. Color slots via `.stat-icon` CSS class + nth-child system.
+  - **badge.tsx**: Added `font-semibold` to role variants, increased horizontal padding.
+  - **button.tsx**: Added `secondary` variant, bumped to `font-semibold`, primary gets `shadow-sm` + lift on hover.
+  - **card.tsx**: Rounded up from `radius-lg` to `radius-xl`.
+  - **input.tsx**: Label → `font-semibold`, more padding (`py-3 px-4`), `focus:bg-white` for clarity.
+  - **login/page.tsx**: Full redesign — split-panel layout on desktop (lg+). Left panel: deep violet gradient with soft circle textures, large frosted-glass brand mark, app name. Right panel: clean form, `radius-2xl` card, taller input/button, absolute language switcher. Mobile: stacked with smaller brand mark visible.
+  - **dashboard/layout.tsx**: Added 3px role-colored gradient strip at top of header. Brand mark now uses matching role gradient. Sign-out button gains red hover. Language switcher gets a border. Loader spinner colored with accent.
+  - **admin/page.tsx + teacher/page.tsx + student/page.tsx**: Added `stat-card-group` wrapper class for nth-child color injection. Page headers: `text-3xl font-black`, role-colored greeting name, role-specific gradient underline bar (h-1 w-14). Icons passed without size class (handled inside StatCard).
+  - Build passes cleanly: 16 pages, zero errors.
+- **What I struggled with / watch out for:**
+  - `insetInlineEnd` / `insetInlineStart` used in login decorative circles for RTL safety — these are logical CSS properties and work correctly in both LTR and RTL.
+  - Tailwind v4 doesn't support arbitrary gradient `from`/`to` values via CSS variables in class strings (e.g., `from-[var(--x)]`) for background-gradient shorthand — workaround: use `bg-gradient-to-r` class + individual `from-[...]` and `to-[...]` arbitrary value classes. These DO work with CSS vars as arbitrary values.
+  - nth-child stat card coloring requires the `.stat-card-group` wrapper directly wrapping the grid children (not an extra wrapper div per card).
+
 ### [NOT_STARTED] Milestone 4: Admin Setup - School Structure & Users
 - Add classes/grades (صف) and sections (شعبة).
 - Add subjects (المقررات).

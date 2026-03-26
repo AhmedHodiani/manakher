@@ -12,23 +12,24 @@ export default function TeacherDashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="text-sm text-[var(--color-ink-secondary)]">
+      <div className="mb-10">
+        <p className="text-sm font-medium text-[var(--color-ink-secondary)] mb-1">
           {dict.dashboard.greeting}{" "}
-          <span className="font-medium text-[var(--color-ink)]">
+          <span className="font-bold text-[var(--color-role-teacher-text)]">
             {user?.name || user?.email}
           </span>
         </p>
-        <h2 className="mt-1 text-2xl font-semibold text-[var(--color-ink)]">
+        <h2 className="text-3xl font-black text-[var(--color-ink)]" style={{ letterSpacing: "-0.5px" }}>
           {t.title}
         </h2>
+        <div className="mt-3 h-1 w-14 rounded-full bg-gradient-to-r from-[var(--color-role-teacher-bold)] to-[#0891b2]" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={<BookOpen className="h-4 w-4" />} label={t.stats.subjects} value="—" />
-        <StatCard icon={<Users className="h-4 w-4" />} label={t.stats.students} value="—" />
-        <StatCard icon={<FileText className="h-4 w-4" />} label={t.stats.assignments} value="—" />
-        <StatCard icon={<Bell className="h-4 w-4" />} label={t.stats.pending} value="—" />
+      <div className="stat-card-group grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={<BookOpen />} label={t.stats.subjects} value="—" />
+        <StatCard icon={<Users />} label={t.stats.students} value="—" />
+        <StatCard icon={<FileText />} label={t.stats.assignments} value="—" />
+        <StatCard icon={<Bell />} label={t.stats.pending} value="—" />
       </div>
     </div>
   );

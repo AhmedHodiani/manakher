@@ -38,77 +38,133 @@ export default function LoginPage() {
   const nextLocale = locale === "ar" ? "en" : "ar";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface)] px-4">
-      <div className="w-full max-w-[380px]">
+    <div className="flex min-h-screen bg-[var(--color-surface)]">
 
-        {/* Language switcher */}
-        <div className="flex justify-end mb-6">
+      {/* Left panel — decorative brand side */}
+      <div
+        className="hidden lg:flex lg:w-[44%] flex-col items-center justify-center relative overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, #5b21b6 0%, #7c3aed 50%, #4c1d95 100%)",
+        }}
+      >
+        {/* Large soft circles — texture without chaos */}
+        <div
+          className="absolute rounded-full opacity-20"
+          style={{ width: 440, height: 440, background: "#ffffff", top: -80, insetInlineEnd: -120 }}
+        />
+        <div
+          className="absolute rounded-full opacity-10"
+          style={{ width: 280, height: 280, background: "#ffffff", bottom: 40, insetInlineStart: -60 }}
+        />
+        <div
+          className="absolute rounded-full opacity-15"
+          style={{ width: 180, height: 180, background: "#c4b5fd", bottom: 200, insetInlineEnd: 60 }}
+        />
+
+        {/* Brand content */}
+        <div className="relative z-10 text-center px-12">
+          {/* Brand mark — large, geometric */}
+          <div
+            className="inline-flex h-24 w-24 items-center justify-center rounded-[var(--radius-2xl)] mb-8 shadow-[var(--shadow-lg)]"
+            style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", border: "2px solid rgba(255,255,255,0.25)" }}
+          >
+            <span className="text-4xl font-black text-white" style={{ letterSpacing: "-1px" }}>م</span>
+          </div>
+
+          <h1 className="text-3xl font-black text-white mb-3" style={{ letterSpacing: "-0.5px" }}>
+            {dict.common.appName}
+          </h1>
+          <p className="text-violet-200 text-base leading-relaxed max-w-[260px] mx-auto">
+            {t.subtitle}
+          </p>
+
+          {/* Decorative row of dots */}
+          <div className="flex items-center justify-center gap-2 mt-10">
+            <span className="h-2 w-8 rounded-full bg-white opacity-80" />
+            <span className="h-2 w-2 rounded-full bg-white opacity-40" />
+            <span className="h-2 w-2 rounded-full bg-white opacity-40" />
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+
+        {/* Language switcher — top right */}
+        <div className="absolute top-5 end-5">
           <button
             onClick={() => switchLocale(nextLocale)}
-            className="text-xs font-medium text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-md)] px-2.5 py-1 hover:bg-[var(--color-surface-hover)]"
+            className="text-xs font-semibold text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-full)] px-3 py-1.5 hover:bg-[var(--color-surface-hover)] border border-[var(--color-border)]"
           >
             {dict.common.switchLang}
           </button>
         </div>
 
-        {/* Brand mark */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-accent)] mb-4">
-            <span className="text-xl font-bold text-white">م</span>
+        {/* Mobile brand mark — only visible on small screens */}
+        <div className="lg:hidden mb-8 text-center">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--color-accent)] mb-3 shadow-[var(--shadow-md)]">
+            <span className="text-2xl font-black text-white">م</span>
           </div>
-          <h1 className="text-xl font-semibold text-[var(--color-ink)]">
-            {t.title}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--color-ink-secondary)]">
-            {t.subtitle}
-          </p>
+          <h1 className="text-lg font-bold text-[var(--color-ink)]">{dict.common.appName}</h1>
         </div>
 
-        {/* Form card */}
-        <div className="bg-[var(--color-surface-card)] border border-[var(--color-border)] rounded-[var(--radius-xl)] shadow-[var(--shadow-sm)] p-6">
-          {error && (
-            <div className="mb-5 flex items-start gap-2.5 rounded-[var(--radius-md)] bg-[var(--color-danger-subtle)] border border-[var(--color-danger-subtle)] p-3 text-sm text-[var(--color-danger-text)]">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-danger)]" />
-              <span>{error}</span>
-            </div>
-          )}
+        {/* Form container */}
+        <div className="w-full max-w-[400px]">
+          <div className="mb-8">
+            <h2 className="text-2xl font-black text-[var(--color-ink)]" style={{ letterSpacing: "-0.5px" }}>
+              {t.title}
+            </h2>
+            <p className="mt-1.5 text-sm text-[var(--color-ink-secondary)]">
+              {t.subtitle}
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              id="email"
-              label={t.emailLabel}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder={t.emailPlaceholder}
-            />
+          {/* Form card */}
+          <div className="bg-[var(--color-surface-card)] border border-[var(--color-border)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-md)] p-8">
+            {error && (
+              <div className="mb-6 flex items-start gap-3 rounded-[var(--radius-lg)] bg-[var(--color-danger-subtle)] border border-red-100 p-4 text-sm text-[var(--color-danger-text)]">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-danger)]" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            <Input
-              id="password"
-              label={t.passwordLabel}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder={t.passwordPlaceholder}
-            />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <Input
+                id="email"
+                label={t.emailLabel}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder={t.emailPlaceholder}
+              />
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-2 w-full py-2.5"
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogIn className="h-4 w-4" />
-              )}
-              {isSubmitting ? t.submittingButton : t.submitButton}
-            </Button>
-          </form>
+              <Input
+                id="password"
+                label={t.passwordLabel}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder={t.passwordPlaceholder}
+              />
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="mt-1 w-full py-3 text-base rounded-[var(--radius-lg)]"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="h-4 w-4" />
+                )}
+                {isSubmitting ? t.submittingButton : t.submitButton}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
