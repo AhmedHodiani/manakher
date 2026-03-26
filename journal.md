@@ -175,11 +175,28 @@ It contains a short and clear to-do list of milestones.
   - MCP PocketBase tool still drops auth between calls — always re-authenticate with curl and use `_superusers` collection endpoint, not `/api/admins/`.
   - `bg-surface-dotted` is a custom CSS class, not a Tailwind utility — don't try to use it with Tailwind's JIT scanning, it's defined in `globals.css` directly.
 
-### [NOT_STARTED] Milestone 4: Admin Setup - School Structure & Users
+### [INPROGRESS] Milestone 4: Admin Setup - School Structure & Users
 - Add classes/grades (صف) and sections (شعبة).
 - Add subjects (المقررات).
 - Add teachers -> assign to class-section(s) and subject(s).
 - Add students -> assign them to class-section(s).
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26) — schema confirmed + full admin frontend built:
+- **What was done:**
+  - PocketBase schema confirmed: `class_sections` (20 records), `subjects` (9 records), `users` with `sections` (multi-relation maxSelect 999) + `subjects` (multi-relation maxSelect 999). Single `section` field was removed by user — both teachers and students now use `sections`.
+  - Extended `ar.json` + `en.json` dictionaries with full admin management keys: nav labels, form field labels, confirm/empty strings, plus common actions (save, cancel, delete, back, search).
+  - Created `src/app/[lang]/dashboard/admin/layout.tsx` — sidebar nav with 5 links (Overview, Classes & Sections, Subjects, Teachers, Students). Desktop: vertical sidebar. Mobile: fixed bottom tab bar. Active state uses violet admin role colors.
+  - Created `sections/page.tsx` — list grouped by grade_order, inline add form (grade_ar/en/order + section_ar/en), delete with confirm. Sections displayed as card per grade with rows per section.
+  - Created `subjects/page.tsx` — flat list with name_ar/en + code, inline add form, delete.
+  - Created `teachers/page.tsx` — multi-select dropdowns (custom checkbox dropdown component) for sections + subjects assignment. Expand query used to show assigned section/subject pills. Creates full user record with role=teacher.
+  - Created `students/page.tsx` — single-section radio picker dropdown. Creates user with role=student, sections=[sectionId].
+  - Updated `admin/page.tsx` — stat cards now load live counts from PocketBase (total users, sections, teachers, students). Uses `getList(1,1)` to get totalItems without fetching all records.
+  - Build: 24 pages, zero TypeScript errors.
+- **Struggles / watch out:**
+  - Admin layout had a TypeScript error: `keyof` on `ReturnType<typeof useLocale>` produces `string | number | symbol` which isn't assignable to React `Key`. Fixed by using a literal `NavKey` type instead.
+  - PocketBase MCP drops auth between calls — always use curl with `_superusers` auth endpoint directly.
 
 ### [NOT_STARTED] Milestone 5: Teacher Setup & Dashboard
 - View assigned class-sections and students.
