@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { getRoleDashboardPath } from "@/lib/auth";
 import { LogOut, Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -12,17 +13,23 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [isLoading, user, router]);
+    if (isLoading) return;
 
-  function handleLogout() {
-    logout();
-    router.push("/login");
-  }
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    // Role-based access check: if the user is on a dashboard path
+    // that doesn't belong to their role, redirect them to their own.
+    const allowedPath = getRoleDashboardPath(user.role);
+    if (!pathname.startsWith(allowedPath)) {
+      router.replace(allowedPath);
+    }
+  }, [isLoading, user, router, pathname]);
 
   if (isLoading) {
     return (
@@ -34,6 +41,16 @@ export default function DashboardLayout({
 
   if (!user) {
     return null;
+  }
+
+  // Don't render children if the user is on the wrong dashboard
+  const allowedPath = getRoleDashboardPath(user.role);
+  if (!pathname.startsWith(allowedPath)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+      </div>
+    );
   }
 
   return (
@@ -49,9 +66,14 @@ export default function DashboardLayout({
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-500">{user.name || user.email}</span>
+            <span className="text-sm text-slate-500">
+              {user.name || user.email}
+            </span>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
               className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               <LogOut className="h-4 w-4" />

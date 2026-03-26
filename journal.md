@@ -47,6 +47,15 @@ It contains a short and clear to-do list of milestones.
   - PocketBase SDK `authStore` uses `localStorage` -- server-side code (proxy/middleware) cannot see it. Always bridge with a cookie if you need server-side auth checks.
   - The `onChange` listener in `pocketbase.ts` fires async relative to the `login()` call. Setting the cookie both in `onChange` AND directly in `login()` ensures no race condition with `router.push()`.
 
+**Iteration 3** (2026-03-26) -- bugfix:
+- **What was done:**
+  - Fixed critical role-based access control gap. Previously any logged-in user could visit any dashboard (student could visit `/dashboard/admin`, etc.).
+  - **proxy.ts**: Added role enforcement -- reads the `role` from the cookie's record, checks it against the dashboard path prefix. If a student tries `/dashboard/admin`, they get redirected to `/dashboard/student`.
+  - **dashboard layout.tsx**: Added client-side role guard as a second layer. Checks `pathname` against `getRoleDashboardPath(user.role)`. If mismatched, redirects to the correct dashboard and does NOT render children (shows spinner instead, preventing any flash of unauthorized content).
+- **Issues/Lessons:**
+  - Never rely on a single layer for authorization. The proxy handles server-side requests, but client-side navigations (via `router.push` or `<Link>`) can sometimes bypass it. The layout guard catches those.
+  - The role is stored inside the cookie's `record.role` field, which the proxy can read without a DB call.
+
 #### Test Cases (for user verification)
 
 | # | Test Case | Steps | Expected Result |
@@ -63,6 +72,12 @@ It contains a short and clear to-do list of milestones.
 | 10 | **Session persistence** | Log in, close the tab, open `http://localhost:3000` again | Auto-redirected to the correct role dashboard (not back to login) |
 | 11 | **PocketBase admin panel** | Open `http://127.0.0.1:8090/_/` in browser | PocketBase admin UI loads, can login with `admin@manakher.com` / `Admin@12345` |
 | 12 | **Users visible in PB admin** | In PB admin panel, go to `users` collection | All 3 seeded users visible with correct roles |
+| 13 | **Student cannot access admin dashboard** | Log in as student, manually navigate to `/dashboard/admin` | Redirected to `/dashboard/student` |
+| 14 | **Student cannot access teacher dashboard** | Log in as student, manually navigate to `/dashboard/teacher` | Redirected to `/dashboard/student` |
+| 15 | **Teacher cannot access admin dashboard** | Log in as teacher, manually navigate to `/dashboard/admin` | Redirected to `/dashboard/teacher` |
+| 16 | **Teacher cannot access student dashboard** | Log in as teacher, manually navigate to `/dashboard/student` | Redirected to `/dashboard/teacher` |
+| 17 | **Admin cannot access teacher dashboard** | Log in as admin, manually navigate to `/dashboard/teacher` | Redirected to `/dashboard/admin` |
+| 18 | **Admin cannot access student dashboard** | Log in as admin, manually navigate to `/dashboard/student` | Redirected to `/dashboard/admin` |
 
 ### [NOT_STARTED] Milestone 2: support 2 languanges arabic and english & RTL Architecture (Arabic First)
 - **Internationalization (i18n) Setup**: Configure the Next.js foundation for seamless switching between Arabic (Default/Primary) and English.
