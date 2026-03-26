@@ -207,8 +207,51 @@
       "stats": {
         "subjects": "موادي",
         "homework": "واجبات مستحقة",
-        "quizzes": "اختبارات قادمة",
+        "submitted": "تسليمات",
         "announcements": "إعلانات"
+      },
+      "nav": {
+        "overview": "نظرة عامة",
+        "announcements": "الإعلانات",
+        "materials": "المواد التعليمية",
+        "homework": "الواجبات"
+      },
+      "announcements": {
+        "title": "الإعلانات",
+        "empty": "لا توجد إعلانات بعد.",
+        "postedOn": "تاريخ النشر",
+        "scopeGlobal": "عام",
+        "scopeSection": "للفصل"
+      },
+      "materials": {
+        "title": "المواد التعليمية",
+        "empty": "لا توجد مواد تعليمية بعد.",
+        "postedOn": "تاريخ النشر",
+        "viewLink": "فتح الرابط",
+        "filterSubject": "تصفية حسب المادة",
+        "all": "الكل"
+      },
+      "homework": {
+        "title": "الواجبات",
+        "empty": "لا توجد واجبات بعد.",
+        "dueDate": "تاريخ التسليم",
+        "submissionType": "نوع التسليم",
+        "typeOnline": "إلكتروني",
+        "typeOnsite": "حضوري",
+        "submitWork": "تسليم الواجب",
+        "mySubmission": "تسليمي",
+        "submitContent": "محتوى التسليم",
+        "phContent": "اكتب إجابتك هنا...",
+        "submitBtn": "تسليم",
+        "submitting": "جاري التسليم...",
+        "submitted": "تم التسليم",
+        "statusSubmitted": "تم التسليم",
+        "statusGraded": "تم التقييم",
+        "statusLate": "متأخر",
+        "grade": "الدرجة",
+        "feedback": "ملاحظات المعلمة",
+        "noSubmission": "لم تُسلِّمي بعد.",
+        "alreadySubmitted": "لقد سلّمتِ هذا الواجب مسبقاً."
       }
     }
   }

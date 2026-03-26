@@ -207,8 +207,51 @@
       "stats": {
         "subjects": "My Subjects",
         "homework": "Homework Due",
-        "quizzes": "Upcoming Quizzes",
+        "submitted": "Submissions",
         "announcements": "Announcements"
+      },
+      "nav": {
+        "overview": "Overview",
+        "announcements": "Announcements",
+        "materials": "Learning Materials",
+        "homework": "Homework"
+      },
+      "announcements": {
+        "title": "Announcements",
+        "empty": "No announcements yet.",
+        "postedOn": "Posted on",
+        "scopeGlobal": "School-wide",
+        "scopeSection": "Section"
+      },
+      "materials": {
+        "title": "Learning Materials",
+        "empty": "No learning materials yet.",
+        "postedOn": "Posted on",
+        "viewLink": "Open Link",
+        "filterSubject": "Filter by Subject",
+        "all": "All"
+      },
+      "homework": {
+        "title": "Homework",
+        "empty": "No homework yet.",
+        "dueDate": "Due Date",
+        "submissionType": "Submission Type",
+        "typeOnline": "Online",
+        "typeOnsite": "On-site",
+        "submitWork": "Submit Work",
+        "mySubmission": "My Submission",
+        "submitContent": "Submission Content",
+        "phContent": "Write your answer here...",
+        "submitBtn": "Submit",
+        "submitting": "Submitting...",
+        "submitted": "Submitted",
+        "statusSubmitted": "Submitted",
+        "statusGraded": "Graded",
+        "statusLate": "Late",
+        "grade": "Grade",
+        "feedback": "Teacher Feedback",
+        "noSubmission": "You have not submitted yet.",
+        "alreadySubmitted": "You have already submitted this homework."
       }
     }
   }

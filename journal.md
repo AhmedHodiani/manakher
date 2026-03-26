@@ -221,7 +221,7 @@ It contains a short and clear to-do list of milestones.
 - **Struggles / watch out:**
   - MCP auto-cancel on parallel calls is a cosmetic SDK error — the record is still written. Retrying causes a "Value must be unique" error confirming the first write succeeded.
 
-### [HANDOFF] Milestone 5: Teacher Setup & Dashboard
+### [HANDOFF] Milestone 5: Teacher Setup & Dashboard — Data Seeded
 - View assigned class-sections and students.
 - Post learning materials (text, docs, videos, links, images) for a class or section(s). *Note: cannot assign the same material/homework across different classes (صفوف) at the same time, must be done separately. Can be done together for sections of the same class.*
 - Assign homework for full class-section(s). Submission types: online or on-site.
@@ -246,11 +246,32 @@ It contains a short and clear to-do list of milestones.
   - Tiptap v3 changed `setContent` signature — second arg is now an options object `{ emitUpdate: false }`, not a boolean `false`. TypeScript caught this.
   - `pocketbase` SDK was missing from `node_modules` despite being a project dependency — had to reinstall it manually. Always run `npm install` after cloning or if build fails with module-not-found on pocketbase.
 
-### [NOT_STARTED] Milestone 6: Student Setup & Dashboard
+**Iteration 3** (2026-03-26) — Data seeding completed:
+- **What was done:**
+  - Ran `seed_data.py` to seed comprehensive dummy data: 260 new students (15+ per section, 301 total), 72 materials, 112 homework assignments, 12 announcements. All teachers now have realistic content in their dashboards.
+  - Verified all counts via PocketBase API.
+- **Struggles:** None. Script ran cleanly on first attempt.
+
+### [INPROGRESS] Milestone 6: Student Setup & Dashboard
 - View, react, and comment on news posts.
 - Read, download, and comment on learning materials. (Comments are visible to everyone).
 - Submit homework online in multiple formats as required (text, docs, videos, links, images).
 - View exams schedule (schedules are set by the Admin).
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26) — Full student dashboard built:
+- **What was done:**
+  - Added full `student` key block to both `ar.json` and `en.json` dictionaries: nav (overview, announcements, materials, homework), stats, and all page-level copy.
+  - Created `student/layout.tsx` — amber/orange sidebar nav (4 items: overview, announcements, materials, homework). Desktop sidebar + mobile bottom tab bar. Uses `--color-role-student-*` CSS variables.
+  - Rewrote `student/page.tsx` (overview) — live stat cards: subjects count (from materials in student section), homework count, submissions count, announcements count. Amber/orange welcome banner.
+  - Created `student/announcements/page.tsx` — reads global announcements + section-specific ones. Expandable cards showing full RichContent body. Scope badge (global/section).
+  - Created `student/materials/page.tsx` — reads materials for student's section. Expandable cards with RichContent body + external link button. Subject filter dropdown.
+  - Created `student/homework/page.tsx` — reads homework for student's section. Each card expands to show: description (RichContent), then either (a) existing submission with grade/feedback if graded, or (b) RichEditor submission form for online homework. On-site homework shows type label only. Overdue homework shown with red icon.
+  - Build: 38 pages, zero TypeScript errors.
+- **Struggles / watch out:**
+  - TypeScript doesn't allow `Submission | null | "loading"` in a union with `!== "loading"` type guard — fixed by using a `SubmissionState { loading: boolean; data: Submission | null }` wrapper type instead.
+  - PocketBase API rules confirmed correct: students can list/view all relevant collections (auth required), can create submissions, teachers can update submissions (for grading).
 
 ### [NOT_STARTED] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.

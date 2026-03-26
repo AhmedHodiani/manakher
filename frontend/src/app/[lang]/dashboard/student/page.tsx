@@ -1,16 +1,70 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
-import { BookOpen, FileText, ClipboardList, Bell } from "lucide-react";
+import { getPocketBase } from "@/lib/pocketbase";
+import { BookOpen, FileText, Send, Bell } from "lucide-react";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
   const { dict, locale } = useLocale();
   const t = dict.dashboard.student;
   const displayName = user ? getDisplayName(user, locale) : "";
+
+  const [subjectCount, setSubjectCount] = useState<number | string>("—");
+  const [hwCount, setHwCount] = useState<number | string>("—");
+  const [submittedCount, setSubmittedCount] = useState<number | string>("—");
+  const [announcementCount, setAnnouncementCount] = useState<number | string>("—");
+
+  useEffect(() => {
+    if (!user) return;
+    const pb = getPocketBase();
+    const sections: string[] = (user as any).sections ?? [];
+
+    if (sections.length === 0) {
+      setSubjectCount(0);
+      setHwCount(0);
+      setAnnouncementCount(0);
+      setSubmittedCount(0);
+      return;
+    }
+
+    const sectionId = sections[0];
+    const sectionFilter = sections.map((id) => `section = "${id}"`).join(" || ");
+    const annFilter = sections.map((id) => `section = "${id}"`).join(" || ");
+
+    // Count homework for student's section
+    pb.collection("homework")
+      .getList(1, 1, { filter: sectionFilter })
+      .then((r) => setHwCount(r.totalItems))
+      .catch(() => setHwCount("—"));
+
+    // Count student's own submissions
+    pb.collection("submissions")
+      .getList(1, 1, { filter: `student = "${user.id}"` })
+      .then((r) => setSubmittedCount(r.totalItems))
+      .catch(() => setSubmittedCount("—"));
+
+    // Count announcements for student's section + global ones
+    pb.collection("announcements")
+      .getList(1, 1, {
+        filter: `scope = "global" || (${annFilter})`,
+      })
+      .then((r) => setAnnouncementCount(r.totalItems))
+      .catch(() => setAnnouncementCount("—"));
+
+    // Count distinct subjects via materials in student's section
+    pb.collection("materials")
+      .getFullList({ filter: sectionFilter, fields: "subject" })
+      .then((mats) => {
+        const unique = new Set(mats.map((m: any) => m.subject));
+        setSubjectCount(unique.size);
+      })
+      .catch(() => setSubjectCount("—"));
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -42,10 +96,10 @@ export default function StudentDashboard() {
           {locale === "ar" ? "نظرة عامة" : "Overview"}
         </h3>
         <div className="stat-card-group grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={<BookOpen />} label={t.stats.subjects} value="—" />
-          <StatCard icon={<FileText />} label={t.stats.homework} value="—" />
-          <StatCard icon={<ClipboardList />} label={t.stats.quizzes} value="—" />
-          <StatCard icon={<Bell />} label={t.stats.announcements} value="—" />
+          <StatCard icon={<BookOpen />} label={t.stats.subjects} value={subjectCount} />
+          <StatCard icon={<FileText />} label={t.stats.homework} value={hwCount} />
+          <StatCard icon={<Send />} label={t.stats.submitted} value={submittedCount} />
+          <StatCard icon={<Bell />} label={t.stats.announcements} value={announcementCount} />
         </div>
       </div>
 
