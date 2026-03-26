@@ -36,6 +36,17 @@ It contains a short and clear to-do list of milestones.
   - Next.js 16 renamed `middleware.ts` to `proxy.ts` with `export const proxy` instead of `export function middleware`. Caught this by reading the bundled docs at `node_modules/next/dist/docs/`.
   - `params` and `searchParams` are now async Promises in Next.js 16 -- must be awaited.
 
+**Iteration 2** (2026-03-26) -- bugfix:
+- **What was done:**
+  - Fixed login redirect not working (test cases 6, 7, 8). Root cause: PocketBase JS SDK stores auth in `localStorage` by default, which is invisible to the server-side proxy. The proxy checked for a `pb_auth` cookie that never existed, so it blocked every navigation to `/dashboard/*` and redirected back to `/login`.
+  - Added cookie sync in `pocketbase.ts` -- on every auth change, the token+record are written to a `pb_auth` cookie (URL-encoded JSON, 7-day max-age, SameSite=Lax).
+  - Also set the cookie explicitly in `auth.ts login()` to guarantee it exists before `router.push()` fires.
+  - Updated `proxy.ts` to `decodeURIComponent` the cookie before parsing.
+  - `logout()` now explicitly clears the `pb_auth` cookie.
+- **Issues/Lessons:**
+  - PocketBase SDK `authStore` uses `localStorage` -- server-side code (proxy/middleware) cannot see it. Always bridge with a cookie if you need server-side auth checks.
+  - The `onChange` listener in `pocketbase.ts` fires async relative to the `login()` call. Setting the cookie both in `onChange` AND directly in `login()` ensures no race condition with `router.push()`.
+
 #### Test Cases (for user verification)
 
 | # | Test Case | Steps | Expected Result |
