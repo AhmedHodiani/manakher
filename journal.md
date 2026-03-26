@@ -278,8 +278,38 @@ It contains a short and clear to-do list of milestones.
 - **Fix:** Updated `listRule` and `viewRule` to also allow `@request.auth.role = "teacher"`. Applied via PATCH to PocketBase API.
 - **Verified:** Teacher auth token now returns 15 students when querying a section.
 
-### [NOT_STARTED] Milestone 7: Interactive Quizzes
+### [INPROGRESS] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.
+
+#### Iteration Log
+
+**Iteration 1** (2026-03-26) — Full quiz system built:
+- **What was done:**
+  - Created 3 new PocketBase collections:
+    - `quizzes` (`pbc_93315167`): title, description, time_limit, teacher (relation→users), section (relation→class_sections), subject (relation→subjects), opens_at, closes_at.
+    - `quiz_questions` (`pbc_2874626212`): quiz (relation→quizzes, cascadeDelete), question_text (editor), options (json array of strings), correct_answer (number = index), order (number). API rules: auth required to list/view, teacher/admin to create/update/delete.
+    - `quiz_attempts` (`pbc_2151097168`): quiz, student, answers (json map of questionId→selectedIndex), score, total_questions, started_at, submitted_at. API rules: students create their own attempt, can only view/update their own, teachers and admins can list all.
+  - Extended `ar.json` + `en.json` dictionaries with full `quizzes` keys under both `teacher` and `student` namespaces.
+  - Updated teacher nav (layout.tsx) and student nav (layout.tsx): added "Quizzes / الاختبارات" with `ClipboardList` icon.
+  - Created `teacher/quizzes/page.tsx`:
+    - Lists teacher's quizzes with section/subject/duration metadata and live status badge (upcoming/open/closed).
+    - Create/edit quiz form: title, section, subject, time_limit, opens_at, closes_at (datetime-local inputs).
+    - "Questions" panel per quiz: lists all MCQ questions with correct answer highlighted in green. Add question form: textarea for question_text, 4 radio+text inputs for options, radio selects correct answer. Delete question.
+    - "Results" panel per quiz: lists all student attempts with name, submission time, score (X/N) and percentage color-coded green ≥60% / red <60%.
+  - Created `student/quizzes/page.tsx`:
+    - Lists all quizzes for student's section with status badge (upcoming/open/closed). Shows prior score bar if already attempted.
+    - "Start Quiz" button visible only for open quizzes not yet attempted.
+    - Quiz-taking mode: full-screen focused view, one question at a time, option cards highlight on selection (amber).
+    - Countdown timer in header (red when <60s remaining), progress bar.
+    - Previous/Next navigation + final "Submit Quiz" with confirm dialog.
+    - Auto-submit on timer expiry.
+    - Auto-grading: compares student's `answers[questionId]` to `correct_answer` per question, computes score.
+    - Score result screen: large percentage, green ≥60% / red <60%, back to list button.
+  - Build: 46 pages, zero TypeScript errors.
+- **Struggles / watch out:**
+  - My edit to teacher/layout.tsx and student/layout.tsx accidentally removed the `import type { ReactNode } from "react"` line because the edit replaced only the lucide import line. Fixed by adding it back; build caught this immediately.
+  - PocketBase `quiz_questions.options` is stored as a JSON array of strings — the frontend must parse it correctly (PB SDK returns it already parsed as a JS array).
+  - Quiz status logic (upcoming/open/closed) must be computed client-side at render time, not stored in DB — avoids stale state issues.
 
 ### [NOT_STARTED] Milestone 8: Superadmin Capabilities & Monitoring
 - **User Management**: Full ability to create, edit, suspend, or delete any student or teacher account, and modify their roles.

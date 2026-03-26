@@ -128,7 +128,8 @@
         "sections": "My Sections & Students",
         "materials": "Learning Materials",
         "homework": "Homework",
-        "announcements": "Announcements"
+        "announcements": "Announcements",
+        "quizzes": "Quizzes"
       },
       "sections": {
         "title": "My Sections & Students",
@@ -203,6 +204,40 @@
         "confirmDelete": "Are you sure you want to delete this announcement?",
         "empty": "No announcements yet.",
         "postedOn": "Posted on"
+      },
+      "quizzes": {
+        "title": "Quizzes",
+        "nav": "Quizzes",
+        "add": "Create Quiz",
+        "editTitle": "Edit Quiz",
+        "quizTitle": "Quiz Title",
+        "description": "Description",
+        "timeLimit": "Time Limit (minutes)",
+        "opensAt": "Opens At",
+        "closesAt": "Closes At",
+        "selectSection": "Section",
+        "selectSubject": "Subject",
+        "phTitle": "Quiz title",
+        "phDescription": "Optional description...",
+        "confirmDelete": "Are you sure you want to delete this quiz?",
+        "empty": "No quizzes yet.",
+        "questions": "Questions",
+        "addQuestion": "Add Question",
+        "questionText": "Question Text",
+        "options": "Options",
+        "option": "Option",
+        "correctAnswer": "Correct Answer",
+        "saveQuestion": "Save Question",
+        "deleteQuestion": "Delete Question",
+        "noQuestions": "No questions yet.",
+        "results": "Results",
+        "noResults": "No attempts yet.",
+        "student": "Student",
+        "score": "Score",
+        "submittedAt": "Submitted At",
+        "minutes": "min",
+        "phOption": "Option text",
+        "phQuestionText": "Write the question here..."
       }
     },
     "student": {
@@ -217,7 +252,8 @@
         "overview": "Overview",
         "announcements": "Announcements",
         "materials": "Learning Materials",
-        "homework": "Homework"
+        "homework": "Homework",
+        "quizzes": "Quizzes"
       },
       "announcements": {
         "title": "Announcements",
@@ -255,6 +291,31 @@
         "feedback": "Teacher Feedback",
         "noSubmission": "You have not submitted yet.",
         "alreadySubmitted": "You have already submitted this homework."
+      },
+      "quizzes": {
+        "title": "Quizzes",
+        "nav": "Quizzes",
+        "empty": "No quizzes available yet.",
+        "notOpen": "This quiz has not started yet.",
+        "closed": "This quiz is closed.",
+        "alreadySubmitted": "You have already taken this quiz.",
+        "startQuiz": "Start Quiz",
+        "timeRemaining": "Time Remaining",
+        "question": "Question",
+        "of": "of",
+        "submit": "Submit Quiz",
+        "submitting": "Submitting...",
+        "result": "Your Score",
+        "outOf": "out of",
+        "minutes": "min",
+        "opensAt": "Opens",
+        "closesAt": "Closes",
+        "timeLimit": "Duration",
+        "noAnswer": "You did not answer this question.",
+        "confirmSubmit": "Are you sure you want to submit? You cannot change your answers after submission.",
+        "score": "Score",
+        "subject": "Subject",
+        "section": "Section"
       }
     }
   }

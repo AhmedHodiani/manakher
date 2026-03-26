@@ -128,7 +128,8 @@
         "sections": "فصولي وطالباتي",
         "materials": "المواد التعليمية",
         "homework": "الواجبات",
-        "announcements": "الإعلانات"
+        "announcements": "الإعلانات",
+        "quizzes": "الاختبارات"
       },
       "sections": {
         "title": "فصولي وطالباتي",
@@ -203,6 +204,40 @@
         "confirmDelete": "هل أنت متأكدة من حذف هذا الإعلان؟",
         "empty": "لا توجد إعلانات بعد.",
         "postedOn": "تاريخ النشر"
+      },
+      "quizzes": {
+        "title": "الاختبارات",
+        "nav": "الاختبارات",
+        "add": "إنشاء اختبار",
+        "editTitle": "تعديل الاختبار",
+        "quizTitle": "عنوان الاختبار",
+        "description": "وصف الاختبار",
+        "timeLimit": "المدة (بالدقائق)",
+        "opensAt": "تاريخ البداية",
+        "closesAt": "تاريخ الانتهاء",
+        "selectSection": "الفصل",
+        "selectSubject": "المادة الدراسية",
+        "phTitle": "عنوان الاختبار",
+        "phDescription": "وصف اختياري للاختبار...",
+        "confirmDelete": "هل أنت متأكدة من حذف هذا الاختبار؟",
+        "empty": "لا توجد اختبارات بعد.",
+        "questions": "الأسئلة",
+        "addQuestion": "إضافة سؤال",
+        "questionText": "نص السؤال",
+        "options": "الخيارات",
+        "option": "الخيار",
+        "correctAnswer": "الإجابة الصحيحة",
+        "saveQuestion": "حفظ السؤال",
+        "deleteQuestion": "حذف السؤال",
+        "noQuestions": "لا توجد أسئلة بعد.",
+        "results": "النتائج",
+        "noResults": "لا توجد محاولات بعد.",
+        "student": "الطالبة",
+        "score": "الدرجة",
+        "submittedAt": "وقت التسليم",
+        "minutes": "دقيقة",
+        "phOption": "الخيار",
+        "phQuestionText": "اكتب نص السؤال هنا..."
       }
     },
     "student": {
@@ -217,7 +252,8 @@
         "overview": "نظرة عامة",
         "announcements": "الإعلانات",
         "materials": "المواد التعليمية",
-        "homework": "الواجبات"
+        "homework": "الواجبات",
+        "quizzes": "الاختبارات"
       },
       "announcements": {
         "title": "الإعلانات",
@@ -255,6 +291,31 @@
         "feedback": "ملاحظات المعلمة",
         "noSubmission": "لم تُسلِّمي بعد.",
         "alreadySubmitted": "لقد سلّمتِ هذا الواجب مسبقاً."
+      },
+      "quizzes": {
+        "title": "الاختبارات",
+        "nav": "الاختبارات",
+        "empty": "لا توجد اختبارات متاحة بعد.",
+        "notOpen": "لم يبدأ الاختبار بعد.",
+        "closed": "انتهى وقت الاختبار.",
+        "alreadySubmitted": "لقد أديتِ هذا الاختبار مسبقاً.",
+        "startQuiz": "بدء الاختبار",
+        "timeRemaining": "الوقت المتبقي",
+        "question": "السؤال",
+        "of": "من",
+        "submit": "تسليم الاختبار",
+        "submitting": "جاري التسليم...",
+        "result": "نتيجتك",
+        "outOf": "من",
+        "minutes": "دقيقة",
+        "opensAt": "يبدأ في",
+        "closesAt": "ينتهي في",
+        "timeLimit": "المدة",
+        "noAnswer": "لم تُجيبي على هذا السؤال.",
+        "confirmSubmit": "هل أنت متأكدة من تسليم الاختبار؟ لا يمكن التراجع بعد التسليم.",
+        "score": "الدرجة",
+        "subject": "المادة",
+        "section": "الفصل"
       }
     }
   }
