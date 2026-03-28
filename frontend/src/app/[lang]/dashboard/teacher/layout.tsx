@@ -6,7 +6,7 @@ import { useLocale } from "@/context/locale-context";
 import { LayoutGrid, Users, BookOpen, FileText, Bell, ClipboardList } from "lucide-react";
 import type { ReactNode } from "react";
 
-type NavKey = "overview" | "sections" | "materials" | "homework" | "announcements" | "quizzes";
+type NavKey = "overview" | "sections" | "materials" | "homework" | "quizzes";
 
 interface NavItem {
   key: NavKey;
@@ -26,7 +26,6 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
     { key: "sections",       href: `${base}/sections`,         icon: <Users className="h-4 w-4" /> },
     { key: "materials",      href: `${base}/materials`,        icon: <BookOpen className="h-4 w-4" /> },
     { key: "homework",       href: `${base}/homework`,         icon: <FileText className="h-4 w-4" /> },
-    { key: "announcements",  href: `${base}/announcements`,    icon: <Bell className="h-4 w-4" /> },
     { key: "quizzes",        href: `${base}/quizzes`,          icon: <ClipboardList className="h-4 w-4" /> },
   ];
 

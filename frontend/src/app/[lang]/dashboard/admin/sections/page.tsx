@@ -146,7 +146,7 @@ export default function SectionsPage() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.gradeOrder}</label>
-              <input required type="number" min={1} value={form.grade_order} placeholder={t.phGradeOrder} onChange={e => setForm(f => ({...f, grade_order: e.target.value}))} className={inputCls} dir="ltr" />
+              <input required type="number" min={0} value={form.grade_order} placeholder={t.phGradeOrder} onChange={e => setForm(f => ({...f, grade_order: e.target.value}))} className={inputCls} dir="ltr" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.sectionAr}</label>
