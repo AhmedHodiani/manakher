@@ -139,6 +139,10 @@ export function RichEditor({
   const handleImageFile = useCallback(
     async (file: File) => {
       if (!editor) return;
+      if (file.size > 100 * 1024 * 1024) {
+        alert("الملف كبير جداً. الحد الأقصى 100 ميغابايت.\nFile is too large. Max 100MB.");
+        return;
+      }
       try {
         const pb = getPocketBase();
         const formData = new FormData();
@@ -149,8 +153,9 @@ export function RichEditor({
         const record = await pb.collection("media").create(formData);
         const url = pb.files.getURL(record, record.file as string);
         editor.chain().focus().setImage({ src: url }).run();
-      } catch {
-        alert("فشل رفع الصورة. حاول مجدداً.\nFailed to upload image.");
+      } catch (e: any) {
+        const msg = e.data?.message || e.message || "Failed to upload image.";
+        alert(`فشل رفع الصورة: ${msg}\nFailed to upload image: ${msg}`);
       }
     },
     [editor]

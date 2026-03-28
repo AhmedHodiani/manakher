@@ -14,7 +14,9 @@
     "search": "Search...",
     "noResults": "No results found",
     "actions": "Actions",
-    "back": "Back"
+    "back": "Back",
+    "fileTooLarge": "File is too large. Max: {size}MB",
+    "uploadFailed": "Upload failed. Please try again."
   },
   "roles": {
     "admin": "Admin",

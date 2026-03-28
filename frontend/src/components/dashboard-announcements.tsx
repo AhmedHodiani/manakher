@@ -64,6 +64,7 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [sections, setSections] = useState<Section[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -119,6 +120,7 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
+    setError(null);
     const pb = getPocketBase();
     try {
       const formData = new FormData();
@@ -132,7 +134,13 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
       
       const fileInput = document.getElementById("ann-image") as HTMLInputElement;
       if (fileInput?.files?.[0]) {
-        formData.append("image", fileInput.files[0]);
+        const file = fileInput.files[0];
+        if (file.size > 50 * 1024 * 1024) {
+          setError(c.fileTooLarge.replace("{size}", "50"));
+          setSaving(false);
+          return;
+        }
+        formData.append("image", file);
       }
 
       if (editingId) {
@@ -145,8 +153,9 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
       setEditingId(null);
       setForm(EMPTY_FORM);
       await load();
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to save announcement:", e);
+      setError(e.data?.message || e.message || c.uploadFailed);
     } finally {
       setSaving(false);
     }
@@ -199,7 +208,7 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
         </h3>
         {canManage && (
           <button
-            onClick={() => { setShowForm(true); setEditingId(null); setForm(EMPTY_FORM); }}
+            onClick={() => { setShowForm(true); setEditingId(null); setForm(EMPTY_FORM); setError(null); }}
             className="flex items-center gap-2 rounded-[var(--radius-full)] px-4 py-1.5 text-xs font-bold text-white shadow-[var(--shadow-sm)] transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{ background: colors.bold }}
           >
@@ -283,6 +292,14 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
                 />
               </div>
             </div>
+
+            {error && (
+              <div className="rounded-[var(--radius-md)] bg-red-50 p-3 text-xs font-bold text-red-600 border border-red-100 flex items-center gap-2">
+                <Bell className="h-3.5 w-3.5 shrink-0" />
+                {error}
+              </div>
+            )}
+
             <div className="flex gap-2 justify-end pt-2">
               <button type="button" onClick={() => setShowForm(false)} className="rounded-[var(--radius-full)] px-4 py-2 text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">
                 {c.cancel}

@@ -81,6 +81,7 @@ export default function TeacherHomeworkPage() {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [gradeForms, setGradeForms] = useState<Record<string, { grade: string; feedback: string }>>({});
   const [savingGrade, setSavingGrade] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const sectionName = (s: Section) =>
     locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
@@ -178,6 +179,7 @@ export default function TeacherHomeworkPage() {
   function openCreate() {
     setForm({ ...EMPTY_FORM });
     setEditingId(null);
+    setError(null);
     setShowForm(true);
   }
 
@@ -198,6 +200,7 @@ export default function TeacherHomeworkPage() {
   async function handleSave() {
     if (!user || !form.title || !form.section || !form.subject || !form.due_date) return;
     setSaving(true);
+    setError(null);
     const pb = getPocketBase();
     try {
       const formData = new FormData();
@@ -214,7 +217,13 @@ export default function TeacherHomeworkPage() {
       const fileInput = document.getElementById("hw-attachments") as HTMLInputElement;
       if (fileInput?.files) {
         for (let i = 0; i < fileInput.files.length; i++) {
-          formData.append("attachments", fileInput.files[i]);
+          const file = fileInput.files[i];
+          if (file.size > 50 * 1024 * 1024) {
+            setError(common.fileTooLarge.replace("{size}", "50"));
+            setSaving(false);
+            return;
+          }
+          formData.append("attachments", file);
         }
       }
 
@@ -225,8 +234,9 @@ export default function TeacherHomeworkPage() {
       }
       setShowForm(false);
       await load();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setError(e.data?.message || e.message || common.uploadFailed);
     } finally {
       setSaving(false);
     }
@@ -329,9 +339,17 @@ export default function TeacherHomeworkPage() {
                 placeholder={t.phDescription}
                 dir={locale === "ar" ? "rtl" : "ltr"}
               />
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2 justify-end">
+
+            {error && (
+              <div className="rounded-[var(--radius-md)] bg-red-50 p-3 text-xs font-bold text-red-600 border border-red-100 flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setShowForm(false)}>{common.cancel}</Button>
             <Button variant="primary" onClick={handleSave} disabled={saving}>{saving ? common.loading : common.save}</Button>
           </div>
