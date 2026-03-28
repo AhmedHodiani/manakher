@@ -42,6 +42,10 @@
         "teachers": "Teachers",
         "students": "Students"
       },
+      "announcements": {
+        "title": "Recent Announcements",
+        "empty": "No announcements yet."
+      },
       "nav": {
         "overview": "Overview",
         "sections": "Classes & Sections",

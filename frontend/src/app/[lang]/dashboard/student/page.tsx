@@ -7,6 +7,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
 import { getPocketBase } from "@/lib/pocketbase";
 import { BookOpen, FileText, Send, Bell } from "lucide-react";
+import { DashboardAnnouncements } from "@/components/dashboard-announcements";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -102,6 +103,9 @@ export default function StudentDashboard() {
           <StatCard icon={<Bell />} label={t.stats.announcements} value={announcementCount} />
         </div>
       </div>
+
+      {/* ── Announcements ────────────────────────────────────────────── */}
+      <DashboardAnnouncements role="student" />
 
     </div>
   );

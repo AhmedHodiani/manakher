@@ -6,6 +6,7 @@ import { useLocale } from "@/context/locale-context";
 import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
 import { Users, Layers, GraduationCap, BookOpen } from "lucide-react";
+import { DashboardAnnouncements } from "@/components/dashboard-announcements";
 import pb from "@/lib/pocketbase";
 
 export default function AdminDashboard() {
@@ -73,6 +74,9 @@ export default function AdminDashboard() {
           <StatCard icon={<BookOpen />}     label={t.stats.students} value={stats.students} />
         </div>
       </div>
+
+      {/* ── Announcements ────────────────────────────────────────────── */}
+      <DashboardAnnouncements role="admin" />
 
     </div>
   );

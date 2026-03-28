@@ -7,6 +7,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
 import { getPocketBase } from "@/lib/pocketbase";
 import { BookOpen, Users, FileText, Clock } from "lucide-react";
+import { DashboardAnnouncements } from "@/components/dashboard-announcements";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
@@ -89,6 +90,9 @@ export default function TeacherDashboard() {
           <StatCard icon={<Clock />} label={t.stats.pending} value={pendingCount} />
         </div>
       </div>
+
+      {/* ── Announcements ────────────────────────────────────────────── */}
+      <DashboardAnnouncements role="teacher" />
 
     </div>
   );

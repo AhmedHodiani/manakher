@@ -42,6 +42,10 @@
         "teachers": "المعلمات",
         "students": "الطالبات"
       },
+      "announcements": {
+        "title": "الإعلانات الأخيرة",
+        "empty": "لا توجد إعلانات بعد."
+      },
       "nav": {
         "overview": "نظرة عامة",
         "sections": "الفصول والشعب",
