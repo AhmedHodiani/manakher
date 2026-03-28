@@ -34,6 +34,7 @@ interface Quiz {
   subject: string;
   opens_at: string;
   closes_at: string;
+  status: "open" | "closed";
   expand?: { section?: Section; subject?: Subject };
 }
 
@@ -54,6 +55,7 @@ interface Attempt {
   score: number;
   total_questions: number;
   submitted_at: string;
+  previous_score: number | null;
 }
 
 // ─── Quiz status helper ───────────────────────────────────────────────────────
@@ -61,6 +63,7 @@ interface Attempt {
 type QuizStatus = "upcoming" | "open" | "closed";
 
 function getQuizStatus(quiz: Quiz): QuizStatus {
+  if (quiz.status === "closed") return "closed";
   const now = new Date();
   const opens = quiz.opens_at ? new Date(quiz.opens_at) : null;
   const closes = quiz.closes_at ? new Date(quiz.closes_at) : null;
@@ -394,7 +397,8 @@ export default function StudentQuizzesPage() {
             const sub = quiz.expand?.subject;
             const status = getQuizStatus(quiz);
             const attempt = attemptMap[quiz.id];
-            const hasAttempted = attempt !== null && attempt !== undefined;
+            const hasAttempted = attempt !== null && attempt !== undefined && !!attempt.submitted_at;
+            const isReset = attempt !== null && attempt !== undefined && !attempt.submitted_at && attempt.previous_score !== null;
 
             const statusBadgeLabel = {
               upcoming: locale === "ar" ? "قادم" : "Upcoming",
@@ -452,10 +456,17 @@ export default function StudentQuizzesPage() {
                           {attempt.score}/{attempt.total_questions}
                         </p>
                       </div>
-                    ) : status === "open" ? (
-                      <Button variant="primary" onClick={() => startQuiz(quiz)}>
-                        {t.startQuiz}
-                      </Button>
+                    ) : (status === "open" || isReset) ? (
+                      <div className="flex flex-col items-end gap-1">
+                        {isReset && (
+                          <p className="text-[10px] font-bold text-orange-500 uppercase">
+                            {t.previousScore || (locale === "ar" ? "الدرجة السابقة" : "Prev Score")}: {attempt?.previous_score}
+                          </p>
+                        )}
+                        <Button variant="primary" onClick={() => startQuiz(quiz)}>
+                          {t.startQuiz}
+                        </Button>
+                      </div>
                     ) : status === "upcoming" ? (
                       <span className="text-xs text-[var(--color-ink-disabled)]">{t.notOpen}</span>
                     ) : (

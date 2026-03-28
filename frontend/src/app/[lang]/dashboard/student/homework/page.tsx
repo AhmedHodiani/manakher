@@ -25,6 +25,8 @@ interface Homework {
   section: string;
   subject: string;
   created: string;
+  total_grade: number;
+  attachments: string[];
   expand?: {
     subject?: Subject;
     teacher?: { name_ar: string; name_en: string };
@@ -230,6 +232,27 @@ export default function StudentHomeworkPage() {
                       </div>
                     )}
 
+                    {/* Attachments */}
+                    {hw.attachments?.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-black text-[var(--color-ink)]">{t.attachments}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {hw.attachments.map((file) => (
+                            <a
+                              key={file}
+                              href={`http://127.0.0.1:8090/api/files/homework/${hw.id}/${file}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-card)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-hover)]"
+                            >
+                              <FileText className="h-3 w-3" />
+                              {file.split("_").slice(1).join("_") || file}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Submission area — only for online homework */}
                     {hw.submission_type === "online" && (
                       <div className="space-y-3">
@@ -258,7 +281,7 @@ export default function StudentHomeworkPage() {
                               <div className="space-y-1 pt-1 border-t border-[var(--color-border-subtle)]">
                                 {submission.data.grade !== null && (
                                   <p className="text-sm font-bold text-[var(--color-ink)]">
-                                    {t.grade}: <span className="text-[var(--color-role-student-bold)]">{submission.data.grade}</span> / 100
+                                    {t.grade}: <span className="text-[var(--color-role-student-bold)]">{submission.data.grade}</span> / {hw.total_grade || 10}
                                   </p>
                                 )}
                                 {submission.data.feedback && (

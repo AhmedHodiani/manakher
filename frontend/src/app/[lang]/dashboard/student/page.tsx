@@ -37,17 +37,20 @@ export default function StudentDashboard() {
     const sectionFilter = sections.map((id) => `section = "${id}"`).join(" || ");
     const annFilter = sections.map((id) => `section = "${id}"`).join(" || ");
 
-    // Count homework for student's section
-    pb.collection("homework")
-      .getList(1, 1, { filter: sectionFilter })
-      .then((r) => setHwCount(r.totalItems))
-      .catch(() => setHwCount("—"));
-
-    // Count student's own submissions
-    pb.collection("submissions")
-      .getList(1, 1, { filter: `student = "${user.id}"` })
-      .then((r) => setSubmittedCount(r.totalItems))
-      .catch(() => setSubmittedCount("—"));
+    // Count homework and submissions to show progress
+    Promise.all([
+      pb.collection("homework").getList(1, 1, { filter: sectionFilter }),
+      pb.collection("submissions").getList(1, 1, { filter: `student = "${user.id}"` })
+    ]).then(([hw, subs]) => {
+      const total = hw.totalItems;
+      const submitted = subs.totalItems;
+      const remaining = Math.max(0, total - submitted);
+      setHwCount(`${remaining} / ${total}`);
+      setSubmittedCount(submitted);
+    }).catch(() => {
+      setHwCount("—");
+      setSubmittedCount("—");
+    });
 
     // Count announcements for student's section + global ones
     pb.collection("announcements")

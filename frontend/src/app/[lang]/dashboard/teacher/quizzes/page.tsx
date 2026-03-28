@@ -40,6 +40,8 @@ interface Quiz {
   subject: string;
   opens_at: string;
   closes_at: string;
+  status: "open" | "closed";
+  attachments: string[];
   created: string;
   expand?: { section?: Section; subject?: Subject };
 }
@@ -61,6 +63,7 @@ interface Attempt {
   score: number;
   total_questions: number;
   submitted_at: string;
+  previous_score: number | null;
   expand?: { student?: { id: string; name_ar: string; name_en: string; email: string } };
 }
 
@@ -74,6 +77,7 @@ const EMPTY_QUIZ = {
   subject: "",
   opens_at: "",
   closes_at: "",
+  status: "open" as Quiz["status"],
 };
 
 const EMPTY_QUESTION = {
@@ -174,21 +178,39 @@ export default function TeacherQuizzesPage() {
       subject: q.subject,
       opens_at: q.opens_at ? q.opens_at.slice(0, 16) : "",
       closes_at: q.closes_at ? q.closes_at.slice(0, 16) : "",
+      status: q.status || "open",
     });
     setEditingQuizId(q.id);
     setShowQuizForm(true);
   }
 
   async function saveQuiz() {
-    if (!user || !quizForm.title || !quizForm.section || !quizForm.subject || !quizForm.time_limit) return;
+    if (!user || !quizForm.title || !quizForm.section || !quizForm.subject) return;
     setSavingQuiz(true);
     const pb = getPocketBase();
     try {
-      const payload = { ...quizForm, teacher: user.id };
+      const formData = new FormData();
+      formData.append("title", quizForm.title);
+      formData.append("description", quizForm.description);
+      formData.append("time_limit", String(quizForm.time_limit));
+      formData.append("section", quizForm.section);
+      formData.append("subject", quizForm.subject);
+      formData.append("opens_at", quizForm.opens_at);
+      formData.append("closes_at", quizForm.closes_at);
+      formData.append("status", quizForm.status);
+      formData.append("teacher", user.id);
+
+      const fileInput = document.getElementById("quiz-attachments") as HTMLInputElement;
+      if (fileInput?.files) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append("attachments", fileInput.files[i]);
+        }
+      }
+
       if (editingQuizId) {
-        await pb.collection("quizzes").update(editingQuizId, payload);
+        await pb.collection("quizzes").update(editingQuizId, formData);
       } else {
-        await pb.collection("quizzes").create(payload);
+        await pb.collection("quizzes").create(formData);
       }
       setShowQuizForm(false);
       await load();
@@ -196,6 +218,47 @@ export default function TeacherQuizzesPage() {
       console.error(e);
     } finally {
       setSavingQuiz(false);
+    }
+  }
+
+  async function toggleQuizStatus(quiz: Quiz) {
+    const pb = getPocketBase();
+    const newStatus = quiz.status === "open" ? "closed" : "open";
+    try {
+      await pb.collection("quizzes").update(quiz.id, { status: newStatus });
+      await load();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function handleRetry(attempt: Attempt) {
+    if (!confirm(t.confirmReset)) return;
+    const pb = getPocketBase();
+    try {
+      // We "reset" by deleting the attempt but we should probably keep track of old score.
+      // The user said: "the new attempt will remove the previous one, but still hints to the old score."
+      // So we can create a record or just update the student's status? 
+      // Actually, if we delete it, we lose the info. 
+      // Let's UPDATE the attempt to a "retry" state or just delete and store somewhere.
+      // Better: Delete the current attempt so they can take it again, 
+      // but maybe we should have a "reset_count" or something.
+      // For now, I'll delete it and if I had a 'previous_attempts' collection I'd use it.
+      // User said: "remove the previous one, but still hints to the old score".
+      // Let's just delete it for now to enable retry, and perhaps the student view will show 'Last score: X' if we store it on the user or a log.
+      // Wait, I added 'previous_score' to quiz_attempts. But if I delete the attempt, I lose it.
+      // Maybe I should just CLEAR the answers and score but KEEP the record with previous_score = current_score?
+      
+      await pb.collection("quiz_attempts").update(attempt.id, {
+        answers: {},
+        score: 0,
+        previous_score: attempt.score,
+        submitted_at: "", // Clear submission time to allow re-entry
+      });
+      
+      if (expandedQuiz) await togglePanel(expandedQuiz, "results");
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -376,6 +439,26 @@ export default function TeacherQuizzesPage() {
                 className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               />
             </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.status}</label>
+              <select
+                value={quizForm.status}
+                onChange={(e) => setQuizForm((f) => ({ ...f, status: e.target.value as any }))}
+                className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              >
+                <option value="open">{t.statusOpen}</option>
+                <option value="closed">{t.statusClosed}</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.attachments}</label>
+              <input 
+                id="quiz-attachments"
+                type="file" 
+                multiple
+                className="w-full text-xs text-[var(--color-ink-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-[var(--radius-md)] file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-role-teacher-bg)] file:text-[var(--color-role-teacher-bold)] hover:file:bg-[var(--color-surface-hover)]"
+              />
+            </div>
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setShowQuizForm(false)}>{common.cancel}</Button>
@@ -430,13 +513,20 @@ export default function TeacherQuizzesPage() {
                         {sec && <span>{sectionName(sec)}</span>}
                         {sub && <span>· {subjectName(sub)}</span>}
                         <span>· {quiz.time_limit} {t.minutes}</span>
-                        <Badge variant={status === "open" ? "accent" : "default"} className="text-[10px] px-1.5 py-0">
-                          {status === "upcoming" ? "upcoming" : status === "closed" ? "closed" : "open"}
+                        <Badge variant={quiz.status === "closed" ? "default" : status === "open" ? "accent" : "default"} className="text-[10px] px-1.5 py-0">
+                          {quiz.status === "closed" ? t.statusClosed : status === "upcoming" ? "upcoming" : status === "closed" ? "closed" : "open"}
                         </Badge>
                       </div>
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0 items-center">
+                    <button
+                      onClick={() => toggleQuizStatus(quiz)}
+                      title={quiz.status === "open" ? t.statusClosed : t.statusOpen}
+                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
+                    >
+                      {quiz.status === "open" ? <CheckCircle className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    </button>
                     <button
                       onClick={() => togglePanel(quiz.id, "questions")}
                       className="flex items-center gap-1 px-2 py-1 rounded-[var(--radius-md)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
@@ -617,16 +707,21 @@ export default function TeacherQuizzesPage() {
                                   {att.submitted_at ? att.submitted_at.slice(0, 16).replace("T", " ") : "—"}
                                 </p>
                               </div>
-                              <div className="text-end shrink-0">
-                                <p className="text-sm font-black text-[var(--color-ink)]">
-                                  {att.score} / {att.total_questions}
-                                </p>
-                                <p className={[
-                                  "text-xs font-bold",
-                                  pct >= 60 ? "text-green-600" : "text-red-500",
-                                ].join(" ")}>
-                                  {pct}%
-                                </p>
+                              <div className="text-end shrink-0 flex items-center gap-4">
+                                <div>
+                                  <p className="text-sm font-black text-[var(--color-ink)]">
+                                    {att.score} / {att.total_questions}
+                                  </p>
+                                  <p className={[
+                                    "text-xs font-bold",
+                                    pct >= 60 ? "text-green-600" : "text-red-500",
+                                  ].join(" ")}>
+                                    {pct}%
+                                  </p>
+                                </div>
+                                <Button variant="ghost" onClick={() => handleRetry(att)} className="h-8 px-2 py-1 text-[10px]">
+                                  {t.resetAttempt}
+                                </Button>
                               </div>
                             </div>
                           );

@@ -35,6 +35,8 @@ interface Homework {
   submission_type: "online" | "onsite";
   section: string;
   subject: string;
+  total_grade: number;
+  attachments: string[]; // URLs
   created: string;
   expand?: { section?: Section; subject?: Subject };
 }
@@ -57,6 +59,7 @@ const EMPTY_FORM = {
   submission_type: "online" as Homework["submission_type"],
   section: "",
   subject: "",
+  total_grade: "10",
 };
 
 export default function TeacherHomeworkPage() {
@@ -186,6 +189,7 @@ export default function TeacherHomeworkPage() {
       submission_type: hw.submission_type,
       section: hw.section,
       subject: hw.subject,
+      total_grade: String(hw.total_grade || 10),
     });
     setEditingId(hw.id);
     setShowForm(true);
@@ -196,11 +200,28 @@ export default function TeacherHomeworkPage() {
     setSaving(true);
     const pb = getPocketBase();
     try {
-      const payload = { ...form, teacher: user.id };
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("due_date", form.due_date);
+      formData.append("submission_type", form.submission_type);
+      formData.append("section", form.section);
+      formData.append("subject", form.subject);
+      formData.append("total_grade", form.total_grade);
+      formData.append("teacher", user.id);
+
+      // Handle file uploads
+      const fileInput = document.getElementById("hw-attachments") as HTMLInputElement;
+      if (fileInput?.files) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append("attachments", fileInput.files[i]);
+        }
+      }
+
       if (editingId) {
-        await pb.collection("homework").update(editingId, payload);
+        await pb.collection("homework").update(editingId, formData);
       } else {
-        await pb.collection("homework").create(payload);
+        await pb.collection("homework").create(formData);
       }
       setShowForm(false);
       await load();
@@ -279,6 +300,26 @@ export default function TeacherHomeworkPage() {
                 <option value="online">{t.typeOnline}</option>
                 <option value="onsite">{t.typeOnsite}</option>
               </select>
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.totalGrade}</label>
+              <input 
+                type="number" 
+                min={1} 
+                value={form.total_grade} 
+                onChange={(e) => setForm((f) => ({ ...f, total_grade: e.target.value }))} 
+                className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-3 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]" 
+                placeholder={t.phTotalGrade}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.attachments}</label>
+              <input 
+                id="hw-attachments"
+                type="file" 
+                multiple
+                className="w-full text-xs text-[var(--color-ink-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-[var(--radius-md)] file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-role-teacher-bg)] file:text-[var(--color-role-teacher-bold)] hover:file:bg-[var(--color-surface-hover)]"
+              />
             </div>
             <div className="sm:col-span-2 space-y-1">
               <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.description}</label>
@@ -372,11 +413,13 @@ export default function TeacherHomeworkPage() {
                             )}
                             <div className="flex gap-2 items-end flex-wrap">
                               <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[var(--color-ink-secondary)]">{t.grade}</label>
+                                <label className="block text-xs font-semibold text-[var(--color-ink-secondary)]">
+                                  {t.grade} / {homeworkList.find(h => h.id === expandedHw)?.total_grade || 10}
+                                </label>
                                 <input
                                   type="number"
                                   min={0}
-                                  max={100}
+                                  max={homeworkList.find(h => h.id === expandedHw)?.total_grade || 100}
                                   value={gf.grade}
                                   onChange={(e) => setGradeForms((gfs) => ({ ...gfs, [sub.id]: { ...gf, grade: e.target.value } }))}
                                   className="w-20 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-2 py-1.5 text-sm text-[var(--color-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"

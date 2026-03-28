@@ -16,6 +16,7 @@ interface Announcement {
   section: string;
   created: string;
   author: string;
+  image: string;
   expand?: { 
     author?: { name_ar: string; name_en: string };
     section?: { grade_ar: string; grade_en: string; section_ar: string; section_en: string };
@@ -120,18 +121,24 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
     setSaving(true);
     const pb = getPocketBase();
     try {
-      const data = {
-        title: form.title,
-        body: form.body,
-        scope: form.scope as "global" | "section",
-        section: form.scope === ("section" as string) ? form.section : "",
-        author: user.id,
-      };
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("body", form.body);
+      formData.append("scope", form.scope);
+      formData.append("author", user.id);
+      if (form.scope === "section") {
+        formData.append("section", form.section);
+      }
+      
+      const fileInput = document.getElementById("ann-image") as HTMLInputElement;
+      if (fileInput?.files?.[0]) {
+        formData.append("image", fileInput.files[0]);
+      }
 
       if (editingId) {
-        await pb.collection("announcements").update(editingId, data);
+        await pb.collection("announcements").update(editingId, formData);
       } else {
-        await pb.collection("announcements").create(data);
+        await pb.collection("announcements").create(formData);
       }
       
       setShowForm(false);
@@ -264,6 +271,17 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
                   </select>
                 </div>
               )}
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-semibold text-[var(--color-ink-secondary)]">
+                  {locale === "ar" ? "إرفاق صورة (اختياري)" : "Attach Image (Optional)"}
+                </label>
+                <input 
+                  id="ann-image"
+                  type="file" 
+                  accept="image/*"
+                  className="w-full text-xs text-[var(--color-ink-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-[var(--radius-full)] file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-surface-sunken)] file:text-[var(--color-ink)] hover:file:bg-[var(--color-surface-hover)]"
+                />
+              </div>
             </div>
             <div className="flex gap-2 justify-end pt-2">
               <button type="button" onClick={() => setShowForm(false)} className="rounded-[var(--radius-full)] px-4 py-2 text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors">
@@ -381,8 +399,17 @@ export function DashboardAnnouncements({ role }: DashboardAnnouncementsProps) {
                   </div>
                 </div>
 
-                {isExpanded && ann.body && (
-                  <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)]/40 px-5 py-5 pb-6">
+                {isExpanded && (
+                  <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)]/40 px-5 py-5 pb-6 space-y-4">
+                    {ann.image && (
+                      <div className="rounded-[var(--radius-lg)] overflow-hidden border border-[var(--color-border)] max-w-md mx-auto sm:mx-0">
+                        <img 
+                          src={`http://127.0.0.1:8090/api/files/announcements/${ann.id}/${ann.image}`} 
+                          alt={ann.title}
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    )}
                     <RichContent html={ann.body} />
                   </div>
                 )}
