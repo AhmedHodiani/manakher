@@ -219,7 +219,8 @@ export default function StudentQuizzesPage() {
 
     const pb = getPocketBase();
     try {
-      const attempt = await pb.collection("quiz_attempts").create<Attempt>({
+      const existingAttempt = attemptMap[activeQuiz.id];
+      const quizData = {
         quiz: activeQuiz.id,
         student: user.id,
         answers: finalAnswers,
@@ -229,7 +230,15 @@ export default function StudentQuizzesPage() {
           ? new Date(quizEndTime.getTime() - activeQuiz.time_limit * 60 * 1000).toISOString()
           : new Date().toISOString(),
         submitted_at: new Date().toISOString(),
-      });
+      };
+
+      let attempt;
+      if (existingAttempt?.id) {
+        attempt = await pb.collection("quiz_attempts").update<Attempt>(existingAttempt.id, quizData);
+      } else {
+        attempt = await pb.collection("quiz_attempts").create<Attempt>(quizData);
+      }
+      
       setCompletedAttempt(attempt);
       setAttemptMap((prev) => ({ ...prev, [activeQuiz.id]: attempt }));
     } catch (e) {

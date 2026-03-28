@@ -21,6 +21,7 @@ interface Material {
   link_url: string;
   section: string;
   subject: string;
+  attachments: string[];
   created: string;
   expand?: {
     subject?: Subject;
@@ -163,8 +164,25 @@ export default function StudentMaterialsPage() {
                         className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-accent)] hover:underline"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
-                        {t.viewLink}
                       </a>
+                    )}
+
+                    {/* Attachments */}
+                    {mat.attachments?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--color-border-subtle)]">
+                        {mat.attachments.map((file) => (
+                          <a
+                            key={file}
+                            href={`http://127.0.0.1:8090/api/files/materials/${mat.id}/${file}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-card)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            {file.split("_").slice(1).join("_") || file}
+                          </a>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}

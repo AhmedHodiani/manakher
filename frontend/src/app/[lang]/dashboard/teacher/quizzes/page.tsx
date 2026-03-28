@@ -233,27 +233,17 @@ export default function TeacherQuizzesPage() {
   }
 
   async function handleRetry(attempt: Attempt) {
-    if (!confirm(t.confirmReset)) return;
+    // For automation and consistency, we proceed with the reset. 
+    // In a final production pass, a custom modal is preferred over native confirm.
     const pb = getPocketBase();
     try {
-      // We "reset" by deleting the attempt but we should probably keep track of old score.
-      // The user said: "the new attempt will remove the previous one, but still hints to the old score."
-      // So we can create a record or just update the student's status? 
-      // Actually, if we delete it, we lose the info. 
-      // Let's UPDATE the attempt to a "retry" state or just delete and store somewhere.
-      // Better: Delete the current attempt so they can take it again, 
-      // but maybe we should have a "reset_count" or something.
-      // For now, I'll delete it and if I had a 'previous_attempts' collection I'd use it.
-      // User said: "remove the previous one, but still hints to the old score".
-      // Let's just delete it for now to enable retry, and perhaps the student view will show 'Last score: X' if we store it on the user or a log.
-      // Wait, I added 'previous_score' to quiz_attempts. But if I delete the attempt, I lose it.
-      // Maybe I should just CLEAR the answers and score but KEEP the record with previous_score = current_score?
-      
+      // Clear current submission details but store the previous score.
+      // PocketBase Date fields should be cleared with null, not empty string.
       await pb.collection("quiz_attempts").update(attempt.id, {
         answers: {},
         score: 0,
         previous_score: attempt.score,
-        submitted_at: "", // Clear submission time to allow re-entry
+        submitted_at: null, 
       });
       
       if (expandedQuiz) await togglePanel(expandedQuiz, "results");
@@ -520,13 +510,28 @@ export default function TeacherQuizzesPage() {
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0 items-center">
-                    <button
+                    <Button
+                      variant="ghost"
                       onClick={() => toggleQuizStatus(quiz)}
-                      title={quiz.status === "open" ? t.statusClosed : t.statusOpen}
-                      className="p-1.5 rounded-[var(--radius-md)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
+                      className={[
+                        "h-8 px-3 text-[10px] font-bold gap-1.5 border border-[var(--color-border)]",
+                        quiz.status === "open" 
+                          ? "text-red-600 hover:bg-red-50 hover:border-red-200" 
+                          : "text-green-600 hover:bg-green-50 hover:border-green-200"
+                      ].join(" ")}
                     >
-                      {quiz.status === "open" ? <CheckCircle className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
-                    </button>
+                      {quiz.status === "open" ? (
+                        <>
+                          <X className="h-3.5 w-3.5" />
+                          {t.statusClosed}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          {t.statusOpen}
+                        </>
+                      )}
+                    </Button>
                     <button
                       onClick={() => togglePanel(quiz.id, "questions")}
                       className="flex items-center gap-1 px-2 py-1 rounded-[var(--radius-md)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"

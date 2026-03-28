@@ -32,6 +32,7 @@ interface Material {
   link_url: string;
   section: string;
   subject: string;
+  attachments: string[];
   created: string;
   expand?: { section?: Section; subject?: Subject };
 }
@@ -51,6 +52,7 @@ export default function TeacherMaterialsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [filterSection, setFilterSection] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
@@ -99,30 +101,54 @@ export default function TeacherMaterialsPage() {
   function openCreate() {
     setForm({ ...EMPTY_FORM });
     setEditingId(null);
+    setError(null);
     setShowForm(true);
   }
 
   function openEdit(m: Material) {
     setForm({ title: m.title, body: m.body, link_url: m.link_url, section: m.section, subject: m.subject });
     setEditingId(m.id);
+    setError(null);
     setShowForm(true);
   }
 
   async function handleSave() {
     if (!user || !form.title || !form.section || !form.subject) return;
     setSaving(true);
+    setError(null);
     const pb = getPocketBase();
     try {
-      const payload = { ...form, teacher: user.id };
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("body", form.body);
+      formData.append("link_url", form.link_url);
+      formData.append("section", form.section);
+      formData.append("subject", form.subject);
+      formData.append("teacher", user.id);
+
+      const fileInput = document.getElementById("material-files") as HTMLInputElement;
+      if (fileInput?.files) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          const file = fileInput.files[i];
+          if (file.size > 100 * 1024 * 1024) {
+            setError(common.fileTooLarge);
+            setSaving(false);
+            return;
+          }
+          formData.append("attachments", file);
+        }
+      }
+
       if (editingId) {
-        await pb.collection("materials").update(editingId, payload);
+        await pb.collection("materials").update(editingId, formData);
       } else {
-        await pb.collection("materials").create(payload);
+        await pb.collection("materials").create(formData);
       }
       setShowForm(false);
       await load();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setError(e.data?.message || common.uploadFailed);
     } finally {
       setSaving(false);
     }
@@ -177,6 +203,12 @@ export default function TeacherMaterialsPage() {
             </button>
           </div>
 
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-[var(--radius-lg)] text-red-600 text-sm font-semibold">
+              {error}
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Input label={t.materialTitle} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder={t.phTitle} />
@@ -221,6 +253,17 @@ export default function TeacherMaterialsPage() {
                 onChange={(html) => setForm((f) => ({ ...f, body: html }))}
                 placeholder={t.phBody}
                 dir={locale === "ar" ? "rtl" : "ltr"}
+              />
+            </div>
+
+            {/* Attachments */}
+            <div className="sm:col-span-2 space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-ink)]">{t.attachments || (locale === "ar" ? "المرفقات" : "Attachments")}</label>
+              <input
+                id="material-files"
+                type="file"
+                multiple
+                className="w-full text-xs text-[var(--color-ink-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-[var(--radius-md)] file:border-0 file:text-xs file:font-semibold file:bg-[var(--color-role-teacher-bg)] file:text-[var(--color-role-teacher-bold)] hover:file:bg-[var(--color-surface-hover)]"
               />
             </div>
           </div>
@@ -276,6 +319,24 @@ export default function TeacherMaterialsPage() {
                     <Link2 className="h-3.5 w-3.5 shrink-0" />
                     {m.link_url}
                   </a>
+                )}
+
+                {/* Attachments */}
+                {m.attachments?.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {m.attachments.map((file) => (
+                      <a
+                        key={file}
+                        href={`http://127.0.0.1:8090/api/files/materials/${m.id}/${file}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-sunken)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
+                      >
+                        <Link2 className="h-3 w-3" />
+                        {file.split("_").slice(1).join("_") || file}
+                      </a>
+                    ))}
+                  </div>
                 )}
               </div>
             );
