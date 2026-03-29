@@ -5,11 +5,9 @@
     "signOut": "Sign out",
     "loading": "Loading...",
     "switchLang": "عربي",
-    "save": "Save Changes",
+    "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
-    "suspend": "Suspend Account",
-    "unsuspend": "Activate Account",
     "edit": "Edit",
     "add": "Add",
     "confirm": "Confirm",
@@ -42,13 +40,9 @@
       "title": "Dashboard",
       "stats": {
         "users": "Total Users",
-        "classes": "Grades & Sections",
+        "classes": "Active Classes",
         "teachers": "Teachers",
-        "students": "Students",
-        "materials": "Learning Materials",
-        "homework": "Assignments",
-        "quizzes": "Quizzes",
-        "submissions": "Student Submissions"
+        "students": "Students"
       },
       "announcements": {
         "title": "Recent Announcements",
@@ -59,29 +53,7 @@
         "sections": "Classes & Sections",
         "subjects": "Subjects",
         "teachers": "Teachers",
-        "students": "Students",
-        "moderation": "Moderation",
-        "settings": "Settings"
-      },
-      "settings": {
-        "title": "Global System Settings",
-        "maintenanceMode": "Maintenance Mode",
-        "maintenanceDesc": "When active, students and teachers will be blocked from accessing the platform.",
-        "globalComments": "Enable Global Comments",
-        "globalCommentsDesc": "Allow comments on all materials and homework across the platform.",
-        "calendar": "Academic Calendar",
-        "saveSuccess": "Settings saved successfully"
-      },
-      "moderation": {
-        "title": "Content Moderation Hub",
-        "allMaterials": "All Learning Materials",
-        "allHomework": "All Homework",
-        "allAnnouncements": "All Announcements",
-        "author": "Author",
-        "hide": "Hide",
-        "unhide": "Show",
-        "confirmHide": "Are you sure you want to hide this content from students?",
-        "confirmDelete": "Are you sure you want to permanently delete this content?"
+        "students": "Students"
       },
       "sections": {
         "title": "Classes & Sections",
