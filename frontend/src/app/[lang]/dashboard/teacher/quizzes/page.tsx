@@ -511,24 +511,24 @@ export default function TeacherQuizzesPage() {
                   </div>
                   <div className="flex gap-1 shrink-0 items-center">
                     <Button
-                      variant="ghost"
+                      variant="primary"
                       onClick={() => toggleQuizStatus(quiz)}
                       className={[
-                        "h-8 px-3 text-[10px] font-bold gap-1.5 border border-[var(--color-border)]",
+                        "h-9 px-4 text-xs font-bold gap-2 shadow-sm transition-all",
                         quiz.status === "open" 
-                          ? "text-red-600 hover:bg-red-50 hover:border-red-200" 
-                          : "text-green-600 hover:bg-green-50 hover:border-green-200"
+                          ? "bg-red-500 hover:bg-red-600 text-white border-none" 
+                          : "bg-emerald-500 hover:bg-emerald-600 text-white border-none"
                       ].join(" ")}
                     >
                       {quiz.status === "open" ? (
                         <>
-                          <X className="h-3.5 w-3.5" />
-                          {t.statusClosed}
+                          <X className="h-4 w-4" />
+                          {t.stopQuiz}
                         </>
                       ) : (
                         <>
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          {t.statusOpen}
+                          <CheckCircle className="h-4 w-4" />
+                          {t.startQuiz}
                         </>
                       )}
                     </Button>

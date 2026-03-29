@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { ClipboardList, Clock, CheckCircle, Lock } from "lucide-react";
+import { ClipboardList, Clock, CheckCircle, Lock, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -148,31 +148,33 @@ export default function StudentQuizzesPage() {
     }
 
     try {
+      setLoadingAttempts(true);
       const sectionFilter = sections.map((id) => `section = "${id}"`).join(" || ");
       const qzs = await pb.collection("quizzes").getFullList<Quiz>({
         filter: sectionFilter,
         sort: "-created",
         expand: "section,subject",
+        requestKey: null, // Disable auto-cancellation for this call
       });
       setQuizzes(qzs);
 
       // Load all attempts for this student for these quizzes
       if (qzs.length > 0) {
-        setLoadingAttempts(true);
         const quizFilter = qzs.map((q) => `quiz = "${q.id}"`).join(" || ");
         const ats = await pb.collection("quiz_attempts").getFullList<Attempt>({
           filter: `student = "${user.id}" && (${quizFilter})`,
+          requestKey: null,
         });
         const map: Record<string, Attempt | null> = {};
         qzs.forEach((q) => { map[q.id] = null; });
         ats.forEach((a) => { map[a.quiz] = a; });
         setAttemptMap(map);
-        setLoadingAttempts(false);
       }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+      setLoadingAttempts(false);
     }
   }, [user]);
 
@@ -255,8 +257,6 @@ export default function StudentQuizzesPage() {
   }
 
   function handleSubmitClick() {
-    // We proceed directly to submit to avoid blocking automated tests.
-    // In production, a custom descriptive modal is preferred.
     submitQuiz();
   }
 
@@ -393,11 +393,25 @@ export default function StudentQuizzesPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-black text-[var(--color-ink)]" style={{ letterSpacing: "-0.5px" }}>
-        {t.title}
-      </h2>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-2xl font-black text-[var(--color-ink)]" style={{ letterSpacing: "-0.5px" }}>
+          {t.title}
+        </h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] rounded-full h-8 px-3 transition-all active:scale-95"
+          onClick={load}
+          disabled={loading || loadingAttempts}
+        >
+          <RotateCcw className={["h-3.5 w-3.5", loading || loadingAttempts ? "animate-spin" : ""].join(" ")} />
+          <span className="font-bold text-[10px] uppercase tracking-wider">
+            {locale === "ar" ? "تحديث" : "Refresh"}
+          </span>
+        </Button>
+      </div>
 
-      {loading || loadingAttempts ? (
+      {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="h-8 w-8 rounded-full border-2 border-[var(--color-role-student-bold)] border-t-transparent animate-spin" />
         </div>
@@ -409,9 +423,12 @@ export default function StudentQuizzesPage() {
             const sub = quiz.expand?.subject;
             const status = getQuizStatus(quiz);
             const attempt = attemptMap[quiz.id];
-            // PocketBase might return null or empty string for DATE fields
-            const hasAttempted = !!(attempt?.submitted_at);
-            const isReset = attempt !== null && attempt !== undefined && !attempt.submitted_at && attempt.previous_score !== null;
+            
+            // Robust check for submission: non-empty string for submitted_at
+            const hasAttempted = !!(attempt?.submitted_at && String(attempt.submitted_at).trim() !== "");
+            
+            // A reset is when an attempt exists but submitted_at is cleared (empty/null) and previous_score was set
+            const isReset = attempt !== null && attempt !== undefined && !hasAttempted && (attempt.previous_score !== null);
 
             const statusBadgeLabel = {
               upcoming: locale === "ar" ? "قادم" : "Upcoming",
@@ -433,7 +450,7 @@ export default function StudentQuizzesPage() {
                         color: status === "open" ? "var(--color-role-student-bold)" : "var(--color-ink-secondary)",
                       }}
                     >
-                      {status === "closed" || hasAttempted
+                      {status === "closed" || (hasAttempted && !isReset)
                         ? <Lock className="h-4 w-4" />
                         : <ClipboardList className="h-4 w-4" />}
                     </span>
@@ -472,8 +489,8 @@ export default function StudentQuizzesPage() {
                     ) : (status === "open" || isReset) ? (
                       <div className="flex flex-col items-end gap-1">
                         {isReset && (
-                          <p className="text-[10px] font-bold text-orange-500 uppercase">
-                            {t.previousScore || (locale === "ar" ? "الدرجة السابقة" : "Prev Score")}: {attempt?.previous_score}
+                          <p className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase">
+                            {locale === "ar" ? "فرصة إعادة" : "Retry Opportunity"}
                           </p>
                         )}
                         <Button variant="primary" onClick={() => startQuiz(quiz)}>

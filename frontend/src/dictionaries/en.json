@@ -274,6 +274,8 @@
         "status": "Status",
         "statusOpen": "Open",
         "statusClosed": "Closed",
+        "stopQuiz": "Close Quiz Now",
+        "startQuiz": "Open Quiz Now",
         "resetAttempt": "Allow Retry",
         "confirmReset": "Are you sure you want to allow this student to retry? They will be reminded of their previous score.",
         "results": "Results",
@@ -363,6 +365,16 @@
         "subject": "Subject",
         "section": "Section"
       }
+    },
+    "suspended": {
+      "title": "Account Suspended",
+      "message": "We regret to inform you that your account has been temporarily disabled by the administration. Please contact the school office for more information.",
+      "backToLogin": "Back to Login"
+    },
+    "maintenance": {
+      "title": "System Maintenance",
+      "message": "We are currently performing scheduled maintenance to provide you with a better learning experience. We will be back shortly!",
+      "schoolName": "Almanakher Elementary Girls' School"
     }
   }
 }

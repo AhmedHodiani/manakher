@@ -34,8 +34,8 @@ export default function SuspendedPage() {
         </div>
         
         <div className="pt-6 border-t border-[var(--color-border-subtle)]">
-          <p className="text-xs font-bold text-[var(--color-ink-secondary)] uppercase tracking-wider opacity-60">
-            {locale === "ar" ? "مدرسة المناخر الأساسية المؤنثة" : "Almanakher Elementary School"}
+          <p className="text-sm font-black text-[var(--color-accent)] tracking-wide">
+            {dict.common.schoolName}
           </p>
         </div>
       </div>
