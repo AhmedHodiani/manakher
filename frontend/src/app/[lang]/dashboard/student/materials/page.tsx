@@ -170,18 +170,28 @@ export default function StudentMaterialsPage() {
                     {/* Attachments */}
                     {mat.attachments?.length > 0 && (
                       <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--color-border-subtle)]">
-                        {mat.attachments.map((file) => (
-                          <a
-                            key={file}
-                            href={`http://127.0.0.1:8090/api/files/materials/${mat.id}/${file}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-card)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)]"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            {file.split("_").slice(1).join("_") || file}
-                          </a>
-                        ))}
+                        {mat.attachments.map((file) => {
+                          const pb = getPocketBase();
+                          const url = pb.files.getUrl(mat, file);
+                          const isPdf = file.toLowerCase().endsWith(".pdf");
+                          const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file);
+                          
+                          return (
+                            <a
+                              key={file}
+                              href={url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-card)] border border-[var(--color-border)] text-xs font-semibold text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              <span className="opacity-70">
+                                {isPdf ? "[PDF]" : isImage ? "[IMG]" : "[FILE]"}
+                              </span>
+                              {file.split("_").slice(1).join("_") || file}
+                            </a>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
