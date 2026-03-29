@@ -15,22 +15,39 @@ export default function AdminDashboard() {
   const t = dict.dashboard.admin;
   const displayName = user ? getDisplayName(user, locale) : "";
 
-  const [stats, setStats] = useState({ users: "—", sections: "—", teachers: "—", students: "—" });
+  const [stats, setStats] = useState({ 
+    users: "—", 
+    sections: "—", 
+    teachers: "—", 
+    students: "—",
+    materials: "—",
+    homework: "—",
+    quizzes: "—",
+    submissions: "—"
+  });
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const [usersRes, sectionsRes, teachersRes, studentsRes] = await Promise.all([
+        const [usersRes, sectionsRes, teachersRes, studentsRes, materialsRes, homeworkRes, quizzesRes, submissionsRes] = await Promise.all([
           pb.collection("users").getList(1, 1, {}),
           pb.collection("class_sections").getList(1, 1, {}),
           pb.collection("users").getList(1, 1, { filter: 'role = "teacher"' }),
           pb.collection("users").getList(1, 1, { filter: 'role = "student"' }),
+          pb.collection("materials").getList(1, 1, {}),
+          pb.collection("homework").getList(1, 1, {}),
+          pb.collection("quizzes").getList(1, 1, {}),
+          pb.collection("submissions").getList(1, 1, {}),
         ]);
         setStats({
           users: String(usersRes.totalItems),
           sections: String(sectionsRes.totalItems),
           teachers: String(teachersRes.totalItems),
           students: String(studentsRes.totalItems),
+          materials: String(materialsRes.totalItems),
+          homework: String(homeworkRes.totalItems),
+          quizzes: String(quizzesRes.totalItems),
+          submissions: String(submissionsRes.totalItems),
         });
       } catch {
         // silently leave "—" on error
@@ -62,16 +79,29 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Stat cards ────────────────────────────────────────────────── */}
+      {/* ── User stats ────────────────────────────────────────────────── */}
       <div>
         <h3 className="text-base font-black text-[var(--color-ink)] mb-4" style={{ letterSpacing: "-0.2px" }}>
-          {locale === "ar" ? "نظرة عامة" : "Overview"}
+          {locale === "ar" ? "إدارة المستخدمين" : "User Management"}
         </h3>
         <div className="stat-card-group grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard icon={<Users />}        label={t.stats.users}    value={stats.users} />
           <StatCard icon={<Layers />}       label={t.stats.classes}  value={stats.sections} />
           <StatCard icon={<GraduationCap />} label={t.stats.teachers} value={stats.teachers} />
           <StatCard icon={<BookOpen />}     label={t.stats.students} value={stats.students} />
+        </div>
+      </div>
+
+      {/* ── Activity stats ────────────────────────────────────────────── */}
+      <div>
+        <h3 className="text-base font-black text-[var(--color-ink)] mb-4" style={{ letterSpacing: "-0.2px" }}>
+          {locale === "ar" ? "نشاط المنصة" : "Platform Activity"}
+        </h3>
+        <div className="stat-card-group grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={<Layers />}   label={t.stats.materials}    value={stats.materials} />
+          <StatCard icon={<Layers />}   label={t.stats.homework}     value={stats.homework} />
+          <StatCard icon={<Layers />}   label={t.stats.quizzes}      value={stats.quizzes} />
+          <StatCard icon={<Layers />}   label={t.stats.submissions}  value={stats.submissions} />
         </div>
       </div>
 

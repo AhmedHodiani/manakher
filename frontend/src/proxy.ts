@@ -26,7 +26,7 @@ function stripLocale(pathname: string, locale: Locale): string {
 
 function getAuthFromCookie(
   request: NextRequest
-): { token: string; role: string; expired: boolean } | null {
+): { token: string; role: string; status: string; expired: boolean } | null {
   const authCookie = request.cookies.get(PB_AUTH_COOKIE);
   if (!authCookie?.value) return null;
 
@@ -35,13 +35,14 @@ function getAuthFromCookie(
     const authData = JSON.parse(decoded);
     const token = authData?.token;
     const role = authData?.record?.role;
+    const status = authData?.record?.status || "active";
 
     if (!token || !role) return null;
 
     const payload = JSON.parse(atob(token.split(".")[1]));
     const expired = payload.exp ? payload.exp * 1000 < Date.now() : false;
 
-    return { token, role, expired };
+    return { token, role, status, expired };
   } catch {
     return null;
   }
@@ -84,6 +85,12 @@ export const proxy: NextProxy = (request: NextRequest) => {
       const correctPath = `/${locale}/dashboard/${auth.role}`;
       return NextResponse.redirect(new URL(correctPath, request.url));
     }
+  }
+
+  // --- Step 5: Suspension check ---
+  if (auth.status === "suspended" && logicalPath !== "/suspended") {
+    const suspendedUrl = new URL(`/${locale}/suspended`, request.url);
+    return NextResponse.redirect(suspendedUrl);
   }
 
   return NextResponse.next();

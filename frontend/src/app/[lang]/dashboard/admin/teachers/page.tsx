@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { GraduationCap, Plus, Trash2, Pencil, Loader2, X, ChevronDown } from "lucide-react";
+import { GraduationCap, Plus, Trash2, Pencil, Loader2, X, ChevronDown, ShieldAlert, ShieldCheck } from "lucide-react";
+import { logAudit } from "@/lib/audit";
 
 interface Teacher {
   id: string;
@@ -12,6 +13,7 @@ interface Teacher {
   email: string;
   sections: string[];
   subjects: string[];
+  status: "active" | "suspended";
   expand?: {
     sections?: ClassSection[];
     subjects?: Subject[];
@@ -98,6 +100,7 @@ export default function TeachersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
   async function load() {
@@ -147,6 +150,22 @@ export default function TeachersPage() {
     setForm(EMPTY_FORM);
   }
 
+  async function handleToggleStatus(teacher: Teacher) {
+    const newStatus = teacher.status === "suspended" ? "active" : "suspended";
+    setTogglingId(teacher.id);
+    try {
+      await pb.collection("users").update(teacher.id, { status: newStatus });
+      await logAudit(
+        newStatus === "suspended" ? "SUSPEND_USER" : "UNSUSPEND_USER",
+        teacher.id,
+        `${newStatus === "suspended" ? "Suspended" : "Activated"} teacher: ${teacher.name_ar} (${teacher.email})`
+      );
+      setTeachers(prev => prev.map(t => t.id === teacher.id ? { ...t, status: newStatus } : t));
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -164,8 +183,9 @@ export default function TeachersPage() {
           data.passwordConfirm = form.password;
         }
         await pb.collection("users").update(editingId, data);
+        await logAudit("UPDATE_USER", editingId, `Updated teacher: ${form.name_ar}`);
       } else {
-        await pb.collection("users").create({
+        const res = await pb.collection("users").create({
           name_ar: form.name_ar,
           name_en: form.name_en,
           email: form.email,
@@ -175,7 +195,9 @@ export default function TeachersPage() {
           sections: form.sections,
           subjects: form.subjects,
           emailVisibility: true,
+          status: "active",
         });
+        await logAudit("CREATE_USER", res.id, `Created teacher: ${form.name_ar}`);
       }
       closeForm();
       await load();
@@ -189,6 +211,7 @@ export default function TeachersPage() {
     setDeletingId(id);
     try {
       await pb.collection("users").delete(id);
+      await logAudit("DELETE_USER", id, `Deleted teacher ID: ${id}`);
       setTeachers(s => s.filter(x => x.id !== id));
     } finally {
       setDeletingId(null);
@@ -330,6 +353,21 @@ export default function TeachersPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleToggleStatus(teacher)}
+                      disabled={togglingId === teacher.id}
+                      className={[
+                        "flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50",
+                        teacher.status === "suspended" 
+                          ? "text-emerald-600 hover:bg-emerald-50" 
+                          : "text-red-500 hover:bg-red-50"
+                      ].join(" ")}
+                    >
+                      {togglingId === teacher.id ? <Loader2 className="h-3 w-3 animate-spin" /> : (
+                        teacher.status === "suspended" ? <ShieldCheck className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />
+                      )}
+                      {teacher.status === "suspended" ? c.unsuspend : c.suspend}
+                    </button>
                     <button
                       onClick={() => openEdit(teacher)}
                       className="flex items-center gap-1.5 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"

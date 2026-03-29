@@ -5,10 +5,12 @@
     "signOut": "تسجيل الخروج",
     "loading": "جاري التحميل...",
     "switchLang": "English",
-    "save": "حفظ",
+    "save": "حفظ التغييرات",
     "cancel": "إلغاء",
     "delete": "حذف",
     "edit": "تعديل",
+    "suspend": "تعطيل الحساب",
+    "unsuspend": "تفعيل الحساب",
     "add": "إضافة",
     "confirm": "تأكيد",
     "search": "بحث...",
@@ -39,10 +41,14 @@
     "admin": {
       "title": "لوحة التحكم",
       "stats": {
-        "users": "المستخدمون",
-        "classes": "الفصول النشطة",
-        "teachers": "المعلمات",
-        "students": "الطالبات"
+        "users": "إجمالي المستخدمين",
+        "classes": "الصفوف والشعب",
+        "teachers": "المعلمون",
+        "students": "الطلاب",
+        "materials": "المواد التعليمية",
+        "homework": "الواجبات",
+        "quizzes": "الاختبارات",
+        "submissions": "تسليمات الطلاب"
       },
       "announcements": {
         "title": "الإعلانات الأخيرة",
@@ -53,7 +59,29 @@
         "sections": "الفصول والشعب",
         "subjects": "المواد الدراسية",
         "teachers": "المعلمات",
-        "students": "الطالبات"
+        "students": "الطالبات",
+        "moderation": "إدارة المحتوى",
+        "settings": "الإعدادات العامة"
+      },
+      "settings": {
+        "title": "الإعدادات العامة للنظام",
+        "maintenanceMode": "وضع الصيانة",
+        "maintenanceDesc": "عند التفعيل، سيتم منع الطلاب والمعلمين من دخول المنصة.",
+        "globalComments": "تفعيل التعليقات عالمياً",
+        "globalCommentsDesc": "السماح بالتعليق على المواد والواجبات في كل المنصة.",
+        "calendar": "التقويم الدراسي",
+        "saveSuccess": "تم حفظ الإعدادات بنجاح"
+      },
+      "moderation": {
+        "title": "مركز إدارة المحتوى",
+        "allMaterials": "جميع المواد التعليمية",
+        "allHomework": "جميع الواجبات",
+        "allAnnouncements": "جميع الإعلانات",
+        "author": "الناشر",
+        "hide": "إخفاء",
+        "unhide": "إظهار",
+        "confirmHide": "هل أنت متأكد من إخفاء هذا المحتوى عن الطلاب؟",
+        "confirmDelete": "هل أنت متأكد من حذف هذا المحتوى نهائياً؟"
       },
       "sections": {
         "title": "الفصول والشعب",

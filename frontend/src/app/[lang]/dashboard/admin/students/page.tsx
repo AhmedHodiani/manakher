@@ -3,7 +3,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { Users, Plus, Trash2, Pencil, Loader2, X, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Users, Plus, Trash2, Pencil, Loader2, X, ChevronDown, ChevronUp, Search, ShieldAlert, ShieldCheck } from "lucide-react";
+import { logAudit } from "@/lib/audit";
 
 interface Student {
   id: string;
@@ -11,6 +12,7 @@ interface Student {
   name_en: string;
   email: string;
   sections: string[];
+  status: "active" | "suspended";
   expand?: { sections?: ClassSection[] };
 }
 
@@ -98,6 +100,7 @@ export default function StudentsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
   // Search state
@@ -181,6 +184,23 @@ export default function StudentsPage() {
     setForm({ name_ar: student.name_ar, name_en: student.name_en, email: student.email, password: "", section: student.sections?.[0] ?? "" });
     setShowForm(true);
   }
+
+  async function handleToggleStatus(student: Student) {
+    const newStatus = student.status === "suspended" ? "active" : "suspended";
+    setTogglingId(student.id);
+    try {
+      await pb.collection("users").update(student.id, { status: newStatus });
+      await logAudit(
+        newStatus === "suspended" ? "SUSPEND_USER" : "UNSUSPEND_USER",
+        student.id,
+        `${newStatus === "suspended" ? "Suspended" : "Activated"} student: ${student.name_ar} (${student.email})`
+      );
+      setStudents(prev => prev.map(s => s.id === student.id ? { ...s, status: newStatus } : s));
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
   function closeForm() { setShowForm(false); setEditingId(null); setForm(EMPTY_FORM); }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -194,12 +214,15 @@ export default function StudentsPage() {
         };
         if (form.password) { data.password = form.password; data.passwordConfirm = form.password; }
         await pb.collection("users").update(editingId, data);
+        await logAudit("UPDATE_USER", editingId, `Updated student: ${form.name_ar}`);
       } else {
-        await pb.collection("users").create({
+        const res = await pb.collection("users").create({
           name_ar: form.name_ar, name_en: form.name_en, email: form.email,
           password: form.password, passwordConfirm: form.password,
           role: "student", sections: form.section ? [form.section] : [], emailVisibility: true,
+          status: "active",
         });
+        await logAudit("CREATE_USER", res.id, `Created student: ${form.name_ar}`);
       }
       closeForm();
       await load();
@@ -213,6 +236,7 @@ export default function StudentsPage() {
     setDeletingId(id);
     try {
       await pb.collection("users").delete(id);
+      await logAudit("DELETE_USER", id, `Deleted student ID: ${id}`);
       setStudents(s => s.filter(x => x.id !== id));
     } finally {
       setDeletingId(null);
@@ -236,6 +260,21 @@ export default function StudentsPage() {
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => handleToggleStatus(student)}
+            disabled={togglingId === student.id}
+            className={[
+              "flex items-center gap-1 rounded-[var(--radius-full)] px-2.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50",
+              student.status === "suspended" 
+                ? "text-emerald-600 hover:bg-emerald-50" 
+                : "text-red-500 hover:bg-red-50"
+            ].join(" ")}
+          >
+            {togglingId === student.id ? <Loader2 className="h-3 w-3 animate-spin" /> : (
+              student.status === "suspended" ? <ShieldCheck className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />
+            )}
+            {student.status === "suspended" ? c.unsuspend : c.suspend}
+          </button>
           <button
             onClick={() => openEdit(student)}
             className="flex items-center gap-1 rounded-[var(--radius-full)] px-2.5 py-1.5 text-xs font-semibold text-[var(--color-ink-placeholder)] hover:bg-[var(--color-accent-subtle)] hover:text-[var(--color-accent-text)] transition-colors"

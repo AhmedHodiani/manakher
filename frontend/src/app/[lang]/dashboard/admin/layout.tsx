@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/context/locale-context";
-import { LayoutGrid, BookOpen, Users, GraduationCap, Layers } from "lucide-react";
+import { LayoutGrid, BookOpen, Users, GraduationCap, Layers, ShieldCheck, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
-type NavKey = "overview" | "sections" | "subjects" | "teachers" | "students";
+type NavKey = "overview" | "sections" | "subjects" | "teachers" | "students" | "moderation" | "settings";
 
 interface NavItem {
   key: NavKey;
@@ -25,6 +25,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { key: "subjects",  href: `/${locale}/dashboard/admin/subjects`, icon: <BookOpen className="h-4 w-4" /> },
     { key: "teachers",  href: `/${locale}/dashboard/admin/teachers`, icon: <GraduationCap className="h-4 w-4" /> },
     { key: "students",  href: `/${locale}/dashboard/admin/students`, icon: <Users className="h-4 w-4" /> },
+    { key: "moderation",href: `/${locale}/dashboard/admin/moderation`,icon: <ShieldCheck className="h-4 w-4" /> },
+    { key: "settings",  href: `/${locale}/dashboard/admin/settings`, icon: <Settings className="h-4 w-4" /> },
   ];
 
   return (
