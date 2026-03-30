@@ -7,7 +7,7 @@ It contains a short and clear to-do list of milestones.
 
 ---
 
-### [INPROGRESS] Milestone 1: Core Setup & Authentication
+### [HANDOFF] Milestone 1: Core Setup & Authentication
 - Set up Next.js frontend and PocketBase backend.
 - Implement user authentication.
 - Structure Admin, Teacher, and Student roles with basic permissions.
@@ -315,7 +315,7 @@ It contains a short and clear to-do list of milestones.
   - Always use `useRef` instead of `document.querySelector` in React components to avoid selecting wrong elements.
   - Dictionary keys should be added before using them in components, not as fallbacks.
 
-### [INPROGRESS] Milestone 7: Interactive Quizzes
+### [HANDOFF] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.
 
 #### Iteration Log

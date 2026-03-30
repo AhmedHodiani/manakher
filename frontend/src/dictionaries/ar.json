@@ -14,7 +14,26 @@
     "search": "بحث...",
     "noResults": "لا توجد نتائج",
     "actions": "إجراءات",
-    "back": "رجوع"
+    "back": "رجوع",
+    "comments": {
+      "title": "التعليقات",
+      "placeholder": "اكتبي تعليقك...",
+      "postComment": "نشر التعليق",
+      "posting": "جاري النشر...",
+      "empty": "لا توجد تعليقات بعد. كوني أول من يعلّق!",
+      "loading": "جاري التحميل...",
+      "confirmDelete": "هل أنت متأكدة من حذف هذا التعليق؟",
+      "justNow": "الآن",
+      "minutesAgo": "قبل {n} دقيقة",
+      "hoursAgo": "قبل {n} ساعة",
+      "daysAgo": "قبل {n} يوم"
+    },
+    "reactions": {
+      "loading": "جاري التحميل...",
+      "like": "إعجاب",
+      "love": "حب",
+      "helpful": "مفيد"
+    }
   },
   "roles": {
     "admin": "مديرة",
@@ -42,13 +61,14 @@
            "teachers": "المعلمات",
            "students": "الطالبات"
          },
-         "nav": {
-           "overview": "نظرة عامة",
-           "sections": "الفصول والشعب",
-           "subjects": "المواد الدراسية",
-           "teachers": "المعلمات",
-           "students": "الطالبات"
-         },
+          "nav": {
+            "overview": "نظرة عامة",
+            "sections": "الفصول والشعب",
+            "subjects": "المواد الدراسية",
+            "teachers": "المعلمات",
+            "students": "الطالبات",
+            "exams": "جدول الامتحانات"
+          },
          "sections": {
            "title": "الفصول والشعب",
            "add": "إضافة فصل",
@@ -114,23 +134,44 @@
            "confirmDelete": "هل أنت متأكدة من حذف هذه الطالبة؟",
            "empty": "لا توجد طالبات مضافة بعد."
          },
-         "announcements": {
-           "title": "الإعلانات",
-           "add": "إضافة إعلان",
-           "editTitle": "تعديل الإعلان",
-           "annTitle": "عنوان الإعلان",
-           "body": "محتوى الإعلان",
-           "scope": "النطاق",
-           "scopeGlobal": "جميع الفصول",
-           "scopeSection": "فصل محدد",
-           "selectSection": "اختر الفصل",
-           "phTitle": "عنوان الإعلان",
-           "phBody": "اكتب الإعلان هنا...",
-           "confirmDelete": "هل أنت متأكدة من حذف هذا الإعلان؟",
-           "empty": "لا توجد إعلانات بعد.",
-           "postedOn": "تاريخ النشر"
-         }
-       },
+          "announcements": {
+            "title": "الإعلانات",
+            "add": "إضافة إعلان",
+            "editTitle": "تعديل الإعلان",
+            "annTitle": "عنوان الإعلان",
+            "body": "محتوى الإعلان",
+            "scope": "النطاق",
+            "scopeGlobal": "جميع الفصول",
+            "scopeSection": "فصل محدد",
+            "selectSection": "اختر الفصل",
+            "phTitle": "عنوان الإعلان",
+            "phBody": "اكتب الإعلان هنا...",
+            "confirmDelete": "هل أنت متأكدة من حذف هذا الإعلان؟",
+            "empty": "لا توجد إعلانات بعد.",
+            "postedOn": "تاريخ النشر"
+          },
+          "exams": {
+            "title": "جدول الامتحانات",
+            "add": "إضافة امتحان",
+            "editTitle": "تعديل الامتحان",
+            "examTitle": "العنوان",
+            "subject": "المادة",
+            "section": "الفصل",
+            "examDate": "تاريخ الامتحان",
+            "startTime": "وقت البدء",
+            "endTime": "وقت الانتهاء",
+            "examType": "نوع الامتحان",
+            "notes": "ملاحظات",
+            "typeMidterm": "منتصف الفصل",
+            "typeFinal": "نهائي",
+            "typeQuiz": "اختبار قصير",
+            "typePractical": "عملي",
+            "phTitle": "امتحان الرياضيات",
+            "phNotes": "ملاحظات إضافية (اختياري)",
+            "confirmDelete": "هل أنت متأكدة من حذف هذا الامتحان؟",
+            "empty": "لا توجد امتحانات مجدولة بعد."
+          }
+        },
     "teacher": {
       "title": "لوحة المعلمة",
       "stats": {
@@ -270,7 +311,8 @@
         "announcements": "الإعلانات",
         "materials": "المواد التعليمية",
         "homework": "الواجبات",
-        "quizzes": "الاختبارات"
+        "quizzes": "الاختبارات",
+        "exams": "جدول الامتحانات"
       },
       "announcements": {
         "title": "الإعلانات",
@@ -333,6 +375,20 @@
         "score": "الدرجة",
         "subject": "المادة",
         "section": "الفصل"
+      },
+      "exams": {
+        "title": "جدول الامتحانات",
+        "empty": "لا توجد امتحانات مجدولة بعد.",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "subject": "المادة",
+        "type": "النوع",
+        "notes": "ملاحظات",
+        "upcoming": "القادمة",
+        "typeMidterm": "منتصف الفصل",
+        "typeFinal": "نهائي",
+        "typeQuiz": "اختبار قصير",
+        "typePractical": "عملي"
       }
     }
   }
