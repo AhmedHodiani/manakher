@@ -1,9 +1,42 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((app) => {
-  const collection = app.findCollectionByNameOrId("pbc_1809324929");
-
-  return app.delete(collection);
+  // Remove relations from sections collection before deleting
+  const sectionsCollection = app.findCollectionByNameOrId("pbc_1809324929");
+  if (sectionsCollection) {
+    // Remove the grade relation field
+    const updatedFields = sectionsCollection.fields.filter(field => field.name !== "grade");
+    sectionsCollection.fields = updatedFields;
+    app.save(sectionsCollection);
+  }
+  
+  // Remove section relation from student_enrollments collection
+  const studentEnrollmentsCollection = app.findCollectionByNameOrId("pbc_1536027323");
+  if (studentEnrollmentsCollection) {
+    // Remove the section relation field
+    const updatedFields = studentEnrollmentsCollection.fields.filter(field => field.name !== "section");
+    studentEnrollmentsCollection.fields = updatedFields;
+    app.save(studentEnrollmentsCollection);
+  }
+  
+  // Remove section relation from teacher_assignments collection
+  const teacherAssignmentsCollection = app.findCollectionByNameOrId("pbc_2791557661");
+  if (teacherAssignmentsCollection) {
+    // Remove the section relation field
+    const updatedFields = teacherAssignmentsCollection.fields.filter(field => field.name !== "section");
+    teacherAssignmentsCollection.fields = updatedFields;
+    app.save(teacherAssignmentsCollection);
+  }
+  
+  // Now delete the sections collection if it exists
+  const sectionsCollectionToDelete = app.findCollectionByNameOrId("pbc_1809324929");
+  if (sectionsCollectionToDelete) {
+    return app.delete(sectionsCollectionToDelete);
+  }
+  
+  return Promise.resolve();
 }, (app) => {
+  // For down migration, just recreate a basic sections collection
+  // The relations will be handled by subsequent migrations
   const collection = new Collection({
     "createRule": "@request.auth.role = \"admin\"",
     "deleteRule": "@request.auth.role = \"admin\"",
@@ -49,19 +82,6 @@ migrate((app) => {
         "required": true,
         "system": false,
         "type": "text"
-      },
-      {
-        "cascadeDelete": false,
-        "collectionId": "pbc_233839710",
-        "hidden": false,
-        "id": "relation1499115060",
-        "maxSelect": 1,
-        "minSelect": 0,
-        "name": "grade",
-        "presentable": false,
-        "required": true,
-        "system": false,
-        "type": "relation"
       }
     ],
     "id": "pbc_1809324929",

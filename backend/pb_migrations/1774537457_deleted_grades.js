@@ -1,9 +1,24 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((app) => {
-  const collection = app.findCollectionByNameOrId("pbc_233839710");
-
-  return app.delete(collection);
+  // Remove grade relation from sections collection before deleting grades
+  const sectionsCollection = app.findCollectionByNameOrId("pbc_1809324929");
+  if (sectionsCollection) {
+    // Filter out the grade relation field directly
+    const updatedFields = sectionsCollection.fields.filter(field => field.name !== "grade");
+    sectionsCollection.fields = updatedFields;
+    app.save(sectionsCollection);
+  }
+  
+  // Now delete the grades collection if it exists
+  const gradesCollection = app.findCollectionByNameOrId("pbc_233839710");
+  if (gradesCollection) {
+    return app.delete(gradesCollection);
+  }
+  
+  return Promise.resolve();
 }, (app) => {
+  // For down migration, just recreate a basic grades collection
+  // The sections relation will be handled by the subsequent deleted_sections migration
   const collection = new Collection({
     "createRule": "@request.auth.role = \"admin\"",
     "deleteRule": "@request.auth.role = \"admin\"",
@@ -72,6 +87,6 @@ migrate((app) => {
     "updateRule": "@request.auth.role = \"admin\"",
     "viewRule": "@request.auth.id != \"\""
   });
-
+  
   return app.save(collection);
 })

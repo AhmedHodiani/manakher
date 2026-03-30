@@ -14,27 +14,33 @@ It contains a short and clear to-do list of milestones.
 
 #### Iteration Log
 
-**Iteration 1** (2026-03-26):
+**Iteration 5** (2026-03-30):
 - **What was done:**
-  - Initialized Next.js 16.2.1 frontend (`/frontend`) with TypeScript, Tailwind CSS, App Router, `src/` dir.
-  - Downloaded and set up PocketBase v0.25.9 binary (`/backend`).
-  - Created PocketBase superadmin (`admin@manakher.com` / `Admin@12345`).
-  - Updated the default `users` auth collection with a `role` select field (values: `admin`, `teacher`, `student`). Set required=true, presentable=true.
-  - Configured API rules on `users` collection for role-based access (admins can list/create/delete all users, users can view/update themselves).
-  - Installed `pocketbase` JS SDK and `lucide-react` icons in frontend.
-  - Created PB client utility (`src/lib/pocketbase.ts`), auth helper functions (`src/lib/auth.ts`).
-  - Created `AuthProvider` context (`src/context/auth-context.tsx`) wrapping the app.
-  - Built clean login page at `/login` with email/password form, error display, loading state.
-  - Created `proxy.ts` (Next.js 16 replacement for `middleware.ts`) for route protection -- checks PB auth cookie, validates JWT expiry, redirects unauthenticated users to `/login`.
-  - Created dashboard layout with header (shows role badge, user name, sign out button).
-  - Created placeholder dashboard pages for `/dashboard/admin`, `/dashboard/teacher`, `/dashboard/student`.
-  - Root `/` page auto-redirects to role-specific dashboard or login.
-  - Seeded 3 test users: `admin@school.edu`, `teacher@school.edu`, `student@school.edu` (all passwords: `Role@12345` pattern).
-  - Build passes cleanly with zero errors.
+  - Enhanced Admin and Teacher dashboards to create posts, announcements, and news in the overview page.
+  - Added announcements creation functionality to Teacher dashboard page with RichText editor, form validation, and CRUD operations.
+  - Added announcements creation functionality to Admin dashboard page with RichText editor, form validation, and CRUD operations.
+  - Created dedicated announcements page for Admin at `/dashboard/admin/announcements`.
+  - Updated dictionaries (ar.json and en.json) with announcements-related terminology for both admin and teacher roles.
 - **Issues/Lessons:**
-  - PocketBase MCP credentials were stale from a previous config (`admin@admin.com`). Had to update `opencode.json` with the new superadmin creds. The MCP server may still use cached old creds until restarted -- worked around by using `curl` API calls directly.
-  - Next.js 16 renamed `middleware.ts` to `proxy.ts` with `export const proxy` instead of `export function middleware`. Caught this by reading the bundled docs at `node_modules/next/dist/docs/`.
-  - `params` and `searchParams` are now async Promises in Next.js 16 -- must be awaited.
+  - Needed to ensure proper PocketBase API rules for announcements collection (admins can manage all, teachers can manage their own).
+  - Had to handle loading states and form resets properly to avoid UI glitches.
+  - Made sure to use proper TypeScript interfaces for announcement data to maintain consistency.
+  - Ensured RTL/LTR support in RichEditor based on current locale.
+  - Verified that both admin and teacher can create global announcements, with admin having access to all announcements.
+
+**Iteration 4** (2026-03-30):
+- **What was done:**
+  - Fixed PocketBase serve failure by resolving migration conflicts.
+  - Modified `1774537457_deleted_grades.js` migration to remove grade relation from sections before deleting grades collection.
+  - Modified `1774537457_deleted_sections.js` migration to remove section relations from student_enrollments and teacher_assignments before deleting sections collection.
+  - Successfully started PocketBase server at http://127.0.0.1:8090.
+  - Started Next.js frontend server at http://localhost:3000.
+  - Verified API health endpoint returns success.
+- **Issues/Lessons:**
+  - Migration order matters when dealing with related collections - need to remove relations before deleting collections.
+  - PocketBase migrations require careful handling of collection relationships to avoid constraint violations.
+  - Direct modification of collection fields in migrations is safer than creating new Collection objects.
+  - Both backend and frontend servers are now running successfully.
 
 **Iteration 2** (2026-03-26) -- bugfix:
 - **What was done:**
@@ -221,6 +227,20 @@ It contains a short and clear to-do list of milestones.
 - **Struggles / watch out:**
   - MCP auto-cancel on parallel calls is a cosmetic SDK error — the record is still written. Retrying causes a "Value must be unique" error confirming the first write succeeded.
 
+**Iteration 3** (2026-03-30) — Admin dashboard announcements enhancement:
+- **What was done:**
+  - Enhanced Admin dashboard overview page to include announcements creation functionality with RichText editor.
+  - Added form for creating/editing announcements with title, body, and scope (global/section) fields.
+  - Implemented CRUD operations for announcements (create, read, update, delete) with proper loading states.
+  - Added announcements list section showing all announcements with author, section, and date information.
+  - Used proper TypeScript interfaces for announcement data consistency.
+  - Ensured RTL/LTR support in RichEditor based on current locale.
+- **Issues/Lessons:**
+  - Needed to handle user null checks properly when accessing user.id for API filters.
+  - Had to manage form state resets to avoid UI glitches after submission.
+  - Made sure to use proper loading states for both form submission and announcements listing.
+  - Verified that admin can create global announcements and view all announcements in the system.
+
 ### [HANDOFF] Milestone 5: Teacher Setup & Dashboard — Data Seeded
 - View assigned class-sections and students.
 - Post learning materials (text, docs, videos, links, images) for a class or section(s). *Note: cannot assign the same material/homework across different classes (صفوف) at the same time, must be done separately. Can be done together for sections of the same class.*
@@ -277,6 +297,23 @@ It contains a short and clear to-do list of milestones.
 - **Root cause:** `users` collection `listRule` was `id = @request.auth.id || @request.auth.role = "admin"`. Teachers were silently getting 0 results when querying students because PocketBase applies the rule and returns an empty list without an error.
 - **Fix:** Updated `listRule` and `viewRule` to also allow `@request.auth.role = "teacher"`. Applied via PATCH to PocketBase API.
 - **Verified:** Teacher auth token now returns 15 students when querying a section.
+
+**Iteration 3** (2026-03-30) — Codebase audit and critical bug fixes:
+- **What was done:**
+  - Conducted a thorough codebase exploration to assess project status and identify issues.
+  - **CRITICAL FIX:** Build was failing due to TypeScript error in `teacher/materials/page.tsx` — `Material` interface had nested `attachment` object but code used flat `file_url`/`file_name` strings. Fixed by simplifying interface to use `attachment?: string` (PocketBase file field).
+  - **Implemented file upload:** Teacher materials page now properly uploads files to PocketBase using `FormData`. Added `selectedFile` state and wired `FileUpload` component correctly.
+  - **Fixed Button component:** Added `size` prop (`"default" | "sm" | "lg" | "icon"`) to `button.tsx` — was causing TypeScript error in `file-upload.tsx`.
+  - **Fixed FileUpload component:** Replaced fragile `document.querySelector('input[type="file"]')` with React `useRef` for proper input targeting when multiple FileUpload components exist.
+  - **Fixed Admin announcements:** Section dropdown was empty — admin couldn't create section-specific announcements. Added `sections` state and `loadSections()` call to fetch `class_sections`.
+  - **Added missing dictionary key:** Added `fileUpload` key to `teacher.materials` in both `ar.json` ("رفع ملف") and `en.json` ("Upload File").
+  - **Moved hardcoded strings to dictionary:** Replaced hardcoded "Overview" / "نظرة عامة" strings in admin, teacher, and student overview pages with `t.nav.overview` dictionary reference.
+  - Build now passes: 44 pages, zero TypeScript errors.
+- **Issues/Lessons:**
+  - Always ensure interface definitions match actual data structure from PocketBase.
+  - When using file upload, use `FormData` to properly send files to PocketBase API.
+  - Always use `useRef` instead of `document.querySelector` in React components to avoid selecting wrong elements.
+  - Dictionary keys should be added before using them in components, not as fallbacks.
 
 ### [INPROGRESS] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.

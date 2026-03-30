@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { BookOpen, Plus, Pencil, Trash2, X, Link2 } from "lucide-react";
+import { BookOpen, Plus, Pencil, Trash2, X, Link2, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { stripHtml } from "@/components/ui/rich-content";
+import FileUpload from "@/components/ui/file-upload";
 
 interface Section {
   id: string;
@@ -30,9 +31,12 @@ interface Material {
   title: string;
   body: string;
   link_url: string;
+  attachment?: string; // PocketBase file field - stores filename
   section: string;
   subject: string;
+  teacher: string;
   created: string;
+  collectionId: string;
   expand?: { section?: Section; subject?: Subject };
 }
 
@@ -52,6 +56,7 @@ export default function TeacherMaterialsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filterSection, setFilterSection] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
 
@@ -98,35 +103,57 @@ export default function TeacherMaterialsPage() {
 
   function openCreate() {
     setForm({ ...EMPTY_FORM });
+    setSelectedFile(null);
     setEditingId(null);
     setShowForm(true);
   }
 
-  function openEdit(m: Material) {
-    setForm({ title: m.title, body: m.body, link_url: m.link_url, section: m.section, subject: m.subject });
-    setEditingId(m.id);
-    setShowForm(true);
-  }
+function openEdit(m: Material) {
+  setForm({ 
+    title: m.title, 
+    body: m.body, 
+    link_url: m.link_url || "",
+    section: m.section, 
+    subject: m.subject 
+  });
+  setSelectedFile(null);
+  setEditingId(m.id);
+  setShowForm(true);
+}
 
-  async function handleSave() {
-    if (!user || !form.title || !form.section || !form.subject) return;
-    setSaving(true);
-    const pb = getPocketBase();
-    try {
-      const payload = { ...form, teacher: user.id };
-      if (editingId) {
-        await pb.collection("materials").update(editingId, payload);
-      } else {
-        await pb.collection("materials").create(payload);
-      }
-      setShowForm(false);
-      await load();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
+async function handleSave() {
+  if (!user || !form.title || !form.section || !form.subject) return;
+  setSaving(true);
+  const pb = getPocketBase();
+  try {
+    // Use FormData for file upload support
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("body", form.body);
+    formData.append("link_url", form.link_url);
+    formData.append("section", form.section);
+    formData.append("subject", form.subject);
+    formData.append("teacher", user.id);
+    
+    // Append file if selected
+    if (selectedFile) {
+      formData.append("attachment", selectedFile);
     }
+    
+    if (editingId) {
+      await pb.collection("materials").update(editingId, formData);
+    } else {
+      await pb.collection("materials").create(formData);
+    }
+    setShowForm(false);
+    setSelectedFile(null);
+    await load();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setSaving(false);
   }
+}
 
   async function handleDelete(id: string) {
     if (!confirm(t.confirmDelete)) return;
@@ -212,6 +239,17 @@ export default function TeacherMaterialsPage() {
             <div className="sm:col-span-2">
               <Input label={t.linkUrl} value={form.link_url} onChange={(e) => setForm((f) => ({ ...f, link_url: e.target.value }))} placeholder={t.phLink} />
             </div>
+            
+            {/* File upload */}
+            <div className="sm:col-span-2">
+              <FileUpload 
+                label={t.fileUpload} 
+                acceptedTypes={["application/pdf", "image/jpeg", "image/png", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]}
+                maxSizeMB={10}
+                onFileChange={(file) => setSelectedFile(file)}
+                fileName={selectedFile?.name}
+              />
+            </div>
 
             {/* Rich text body */}
             <div className="sm:col-span-2 space-y-1">
@@ -275,6 +313,17 @@ export default function TeacherMaterialsPage() {
                   <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mt-1.5 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline truncate">
                     <Link2 className="h-3.5 w-3.5 shrink-0" />
                     {m.link_url}
+                  </a>
+                )}
+                {m.attachment && (
+                  <a 
+                    href={`${getPocketBase().baseURL}/api/files/${m.collectionId}/${m.id}/${m.attachment}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="mt-1.5 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline truncate"
+                  >
+                    <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                    {m.attachment}
                   </a>
                 )}
               </div>
