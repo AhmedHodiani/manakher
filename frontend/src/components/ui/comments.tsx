@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { getDisplayName } from "@/lib/auth";
 import { Button } from "./button";
 import { Trash2 } from "lucide-react";
 
@@ -18,6 +17,14 @@ interface Comment {
     email: string;
   };
   created: string;
+  expand?: {
+    author?: {
+      id: string;
+      name_ar: string;
+      name_en: string;
+      email: string;
+    };
+  };
 }
 
 interface CommentsProps {
@@ -164,7 +171,9 @@ export function Comments({ targetType, targetId }: CommentsProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-semibold text-[var(--color-ink)]">
-                      {getDisplayName(comment.author, locale)}
+                      {locale === "ar" 
+                        ? comment.author.name_ar || comment.author.name_en || comment.author.email
+                        : comment.author.name_en || comment.author.name_ar || comment.author.email}
                     </span>
                     <span className="text-sm text-[var(--color-ink-secondary)]">
                       {formatDate(comment.created)}

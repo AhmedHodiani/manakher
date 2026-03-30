@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/context/locale-context";
-import { LayoutGrid, Bell, BookOpen, FileText, ClipboardList } from "lucide-react";
+import { LayoutGrid, Bell, BookOpen, FileText, ClipboardList, Calendar } from "lucide-react";
 import type { ReactNode } from "react";
 
-type NavKey = "overview" | "announcements" | "materials" | "homework" | "quizzes";
+type NavKey = "overview" | "announcements" | "materials" | "homework" | "quizzes" | "exams";
 
 interface NavItem {
   key: NavKey;
@@ -27,6 +27,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     { key: "materials",     href: `${base}/materials`,       icon: <BookOpen className="h-4 w-4" /> },
     { key: "homework",      href: `${base}/homework`,        icon: <FileText className="h-4 w-4" /> },
     { key: "quizzes",       href: `${base}/quizzes`,         icon: <ClipboardList className="h-4 w-4" /> },
+    { key: "exams",         href: `${base}/exams`,           icon: <Calendar className="h-4 w-4" /> },
   ];
 
   return (

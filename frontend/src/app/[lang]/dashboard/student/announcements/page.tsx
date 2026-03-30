@@ -7,6 +7,8 @@ import { getPocketBase } from "@/lib/pocketbase";
 import { Bell, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RichContent } from "@/components/ui/rich-content";
+import { Comments } from "@/components/ui/comments";
+import { Reactions } from "@/components/ui/reactions";
 
 interface Announcement {
   id: string;
@@ -119,8 +121,12 @@ export default function StudentAnnouncementsPage() {
                 </button>
 
                 {isExpanded && ann.body && (
-                  <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)] px-5 py-4">
+                  <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)] px-5 py-4 space-y-4">
                     <RichContent html={ann.body} />
+                    
+                    <Reactions targetType="announcement" targetId={ann.id} />
+                    
+                    <Comments targetType="announcement" targetId={ann.id} />
                   </div>
                 )}
               </div>

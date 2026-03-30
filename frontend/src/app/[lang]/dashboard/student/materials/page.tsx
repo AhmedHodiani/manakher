@@ -6,6 +6,7 @@ import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
 import { BookOpen, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { RichContent } from "@/components/ui/rich-content";
+import { Comments } from "@/components/ui/comments";
 
 interface Subject {
   id: string;
@@ -166,6 +167,8 @@ export default function StudentMaterialsPage() {
                         {t.viewLink}
                       </a>
                     )}
+                    
+                    <Comments targetType="material" targetId={mat.id} />
                   </div>
                 )}
               </div>
