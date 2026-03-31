@@ -10,12 +10,7 @@ import { Trash2 } from "lucide-react";
 interface Comment {
   id: string;
   content: string;
-  author: {
-    id: string;
-    name_ar: string;
-    name_en: string;
-    email: string;
-  };
+  author: string; // This is the ID, expanded author is in expand.author
   created: string;
   expand?: {
     author?: {
@@ -53,17 +48,7 @@ export function Comments({ targetType, targetId }: CommentsProps) {
         sort: "-created",
       });
       
-      setComments(
-        records.items.map((item) => ({
-          ...item,
-          author: item.expand?.author || {
-            id: "",
-            name_ar: "Unknown",
-            name_en: "Unknown",
-            email: "",
-          },
-        }))
-      );
+      setComments(records.items);
     } catch (error) {
       console.error("Failed to load comments:", error);
     } finally {
@@ -162,40 +147,47 @@ export function Comments({ targetType, targetId }: CommentsProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="bg-[var(--color-surface-card)] rounded-lg p-4 border border-[var(--color-border)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-[var(--color-ink)]">
-                      {locale === "ar" 
-                        ? comment.author.name_ar || comment.author.name_en || comment.author.email
-                        : comment.author.name_en || comment.author.name_ar || comment.author.email}
-                    </span>
-                    <span className="text-sm text-[var(--color-ink-secondary)]">
-                      {formatDate(comment.created)}
-                    </span>
+          {comments.map((comment) => {
+            const authorData = comment.expand?.author;
+            const authorName = authorData
+              ? (locale === "ar" 
+                  ? authorData.name_ar || authorData.name_en || authorData.email
+                  : authorData.name_en || authorData.name_ar || authorData.email)
+              : (locale === "ar" ? "مستخدم" : "User");
+            
+            return (
+              <div
+                key={comment.id}
+                className="bg-[var(--color-surface-card)] rounded-lg p-4 border border-[var(--color-border)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-[var(--color-ink)]">
+                        {authorName}
+                      </span>
+                      <span className="text-sm text-[var(--color-ink-secondary)]">
+                        {formatDate(comment.created)}
+                      </span>
+                    </div>
+                    <p className="text-[var(--color-ink)] whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
                   </div>
-                  <p className="text-[var(--color-ink)] whitespace-pre-wrap">
-                    {comment.content}
-                  </p>
+                  {user?.id === comment.author && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(comment.id)}
+                      className="text-[var(--color-status-danger-text)] hover:bg-[var(--color-status-danger-bg)]"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
-                {user?.id === comment.author.id && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(comment.id)}
-                    className="text-[var(--color-status-danger-text)] hover:bg-[var(--color-status-danger-bg)]"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
