@@ -272,7 +272,7 @@ It contains a short and clear to-do list of milestones.
   - Verified all counts via PocketBase API.
 - **Struggles:** None. Script ran cleanly on first attempt.
 
-### [INPROGRESS] Milestone 6: Student Setup & Dashboard
+### [HANDOFF] Milestone 6: Student Setup & Dashboard
 - View, react, and comment on news posts.
 - Read, download, and comment on learning materials. (Comments are visible to everyone).
 - Submit homework online in multiple formats as required (text, docs, videos, links, images).
@@ -314,6 +314,39 @@ It contains a short and clear to-do list of milestones.
   - When using file upload, use `FormData` to properly send files to PocketBase API.
   - Always use `useRef` instead of `document.querySelector` in React components to avoid selecting wrong elements.
   - Dictionary keys should be added before using them in components, not as fallbacks.
+
+**Iteration 4** (2026-03-31) — Comments/Reactions collections fix + Exam schedules:
+- **What was done:**
+  - **Recreated `comments` collection** with proper schema: id, content (text), author (relation→users), target_type (select: announcement/material), target_id (text), **created** (autodate with onCreate:true). The missing `created` field was causing 400 errors when sorting by `-created`.
+  - **Recreated `reactions` collection** with proper schema: id, type (select: like/love/helpful), user (relation→users), target_type, target_id, **created** (autodate).
+  - **Created `exam_schedules` collection** for admin to set exam dates: title, exam_date (date), start_time (text), end_time (text), exam_type (select: midterm/final/quiz/practical), notes (text), subject (relation), section (relation).
+  - **Fixed Comment interface** in `comments.tsx`: Changed `author` from object to `string` (the ID), with expanded author data accessed via `expand.author`.
+  - **Added exam schedules page** for students (`student/exams/page.tsx`): Shows upcoming and past exams with date, time, subject, and type badges.
+  - **Added exam management page** for admin (`admin/exams/page.tsx`): CRUD for exam schedules with section/subject selection.
+  - Moved test material and exam schedules to student's section (`7vn0c2xll18vdp0`) for visibility.
+  - Build passes with all fixes.
+- **Issues/Lessons:**
+  - PocketBase v0.23+ uses `_superusers` collection for admin auth, not `/api/admins/`.
+  - Autodate field format in PocketBase API: use `"onCreate": true` (boolean), NOT `"onCreate": {"enabled": true}` (object).
+  - When sorting by a field in PocketBase, that field MUST exist in the collection schema.
+
+**Iteration 5** (2026-03-31) — Teacher comments visibility + Combined Assessments page:
+- **What was done:**
+  - **Fixed: Teachers couldn't see student comments.** Root cause: Teacher pages for materials and announcements didn't have the `Comments` component. Added expandable "View Details & Comments" section to both:
+    - `teacher/materials/page.tsx`: Added imports for Comments, ChevronDown/Up, MessageCircle, RichContent. Added `expandedId` state. Updated material cards to be expandable with full body content and Comments component.
+    - `teacher/announcements/page.tsx`: Same treatment — expandable cards with Comments component.
+  - **Fixed: Materials 400 error for students.** Root cause: PocketBase `users` collection `viewRule` only allowed students to view their own record, blocking the `expand: teacher` on materials. Updated viewRule to: `id = @request.auth.id || @request.auth.role = "admin" || @request.auth.role = "teacher" || role = "teacher"` — now students can view teacher records (needed for expand).
+  - **Combined Exams & Quizzes into unified Assessments page** (per user feedback):
+    - Created new `student/assessments/page.tsx` with tab interface:
+      - **Tab 1: Interactive Quizzes** — Full quiz-taking functionality preserved (timer, questions, scoring, results).
+      - **Tab 2: Exam Schedule** — Shows upcoming exams with details and past exams in muted style.
+    - Updated `student/layout.tsx`: Changed nav from 6 items (with separate quizzes/exams) to 5 items with single "assessments" link.
+    - Updated dictionaries (`ar.json`, `en.json`): Added `assessments` nav key and section with `tabQuizzes`/`tabExams` labels.
+  - Build passes: 48 pages, zero TypeScript errors.
+  - Committed: "M6: Combine Exams & Quizzes into unified Assessments page with tabs"
+- **Issues/Lessons:**
+  - PocketBase expand only works if the requesting user has viewRule access to the related collection. Students needed viewRule access to teacher records for the expand to work.
+  - Keep old pages (quizzes, exams) in place even when combining — allows for rollback if needed.
 
 ### [HANDOFF] Milestone 7: Interactive Quizzes
 - Implement interactive timed quizzes with automatic grading.
