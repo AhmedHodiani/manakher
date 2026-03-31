@@ -45,7 +45,7 @@ Because the backend relies on PocketBase, spinning up the development environmen
 
 Ensure you have the following installed on your machine:
 
-* **Node.js** (v18.x or higher)
+* **Node.js** (v18.x or higher (I recommend v20))
 * **Git**
 * **PocketBase Executable** (Download the single binary for your specific OS from the [PocketBase website](https://pocketbase.io/docs/))
 
@@ -89,6 +89,9 @@ cd frontend
 # Install all required React/Next.js dependencies
 npm install
 
+# Or install the v20 of it
+npm install 20
+
 # Start the Next.js development server
 npm run dev
 ```
@@ -109,7 +112,7 @@ Navigate to `http://localhost:3000/login` and use the following credentials to e
 | **Teacher** | `teacher@school.edu` | `Teacher@12345` |
 | **Student** | `student@school.edu` | `Student@12345` |
 
-*(Note: To access the raw PocketBase database interface, navigate to `http://127.0.0.1:8090/_/` and log in with the superuser credentials: `admin@manakher.com` / `Admin@12345`)*
+*(Note: To access the raw PocketBase database interface, navigate to `http://127.0.0.1:8090/_/` and log in with the superuser credentials: `admin@manakher.com` / `Admin@12345`), or create a new one with given credentials here*
 
 ---
 
