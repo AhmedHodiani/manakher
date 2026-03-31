@@ -4,12 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { BookOpen, Plus, Pencil, Trash2, X, Link2, Paperclip } from "lucide-react";
+import { BookOpen, Plus, Pencil, Trash2, X, Link2, Paperclip, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
-import { stripHtml } from "@/components/ui/rich-content";
+import { stripHtml, RichContent } from "@/components/ui/rich-content";
 import FileUpload from "@/components/ui/file-upload";
+import { Comments } from "@/components/ui/comments";
 
 interface Section {
   id: string;
@@ -59,6 +60,7 @@ export default function TeacherMaterialsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filterSection, setFilterSection] = useState("");
   const [filterSubject, setFilterSubject] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const sectionName = (s: Section) =>
     locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
@@ -284,6 +286,7 @@ async function handleSave() {
           {materials.map((m) => {
             const sec = m.expand?.section;
             const sub = m.expand?.subject;
+            const isExpanded = expandedId === m.id;
             return (
               <div key={m.id} className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] px-5 py-4 shadow-[var(--shadow-xs)]">
                 <div className="flex items-start justify-between gap-3">
@@ -308,14 +311,14 @@ async function handleSave() {
                     </button>
                   </div>
                 </div>
-                {m.body && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-2">{stripHtml(m.body)}</p>}
-                {m.link_url && (
+                {!isExpanded && m.body && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-2">{stripHtml(m.body)}</p>}
+                {!isExpanded && m.link_url && (
                   <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mt-1.5 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline truncate">
                     <Link2 className="h-3.5 w-3.5 shrink-0" />
                     {m.link_url}
                   </a>
                 )}
-                {m.attachment && (
+                {!isExpanded && m.attachment && (
                   <a 
                     href={`${getPocketBase().baseURL}/api/files/${m.collectionId}/${m.id}/${m.attachment}`} 
                     target="_blank" 
@@ -325,6 +328,47 @@ async function handleSave() {
                     <Paperclip className="h-3.5 w-3.5 shrink-0" />
                     {m.attachment}
                   </a>
+                )}
+                
+                {/* Expand/Collapse button */}
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : m.id)}
+                  className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-[var(--color-accent-text)] hover:underline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {isExpanded 
+                    ? (locale === "ar" ? "إخفاء التفاصيل" : "Hide Details") 
+                    : (locale === "ar" ? "عرض التفاصيل والتعليقات" : "View Details & Comments")}
+                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                
+                {/* Expanded content with full body and comments */}
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+                    {m.body && (
+                      <div className="mb-4">
+                        <RichContent html={m.body} />
+                      </div>
+                    )}
+                    {m.link_url && (
+                      <a href={m.link_url} target="_blank" rel="noopener noreferrer" className="mb-2 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline">
+                        <Link2 className="h-3.5 w-3.5 shrink-0" />
+                        {m.link_url}
+                      </a>
+                    )}
+                    {m.attachment && (
+                      <a 
+                        href={`${getPocketBase().baseURL}/api/files/${m.collectionId}/${m.id}/${m.attachment}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="mb-4 flex items-center gap-1.5 text-sm text-[var(--color-accent-text)] hover:underline"
+                      >
+                        <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                        {m.attachment}
+                      </a>
+                    )}
+                    <Comments targetType="material" targetId={m.id} />
+                  </div>
                 )}
               </div>
             );

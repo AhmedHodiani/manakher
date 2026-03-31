@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { Bell, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Bell, Plus, Pencil, Trash2, X, ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
-import { stripHtml } from "@/components/ui/rich-content";
+import { stripHtml, RichContent } from "@/components/ui/rich-content";
+import { Comments } from "@/components/ui/comments";
 
 interface Section {
   id: string;
@@ -43,6 +44,7 @@ export default function TeacherAnnouncementsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const sectionName = (s: Section) =>
     locale === "ar" ? `${s.grade_ar} — ${s.section_ar}` : `${s.grade_en} — ${s.section_en}`;
@@ -211,6 +213,7 @@ export default function TeacherAnnouncementsPage() {
         <div className="space-y-3">
           {announcements.map((a) => {
             const sec = a.expand?.section;
+            const isExpanded = expandedId === a.id;
             return (
               <div key={a.id} className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] px-5 py-4 shadow-[var(--shadow-xs)]">
                 <div className="flex items-start justify-between gap-3">
@@ -236,7 +239,29 @@ export default function TeacherAnnouncementsPage() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-3">{stripHtml(a.body)}</p>
+                {!isExpanded && <p className="mt-2 text-sm text-[var(--color-ink-secondary)] line-clamp-3">{stripHtml(a.body)}</p>}
+                
+                {/* Expand/Collapse button */}
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : a.id)}
+                  className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-[var(--color-accent-text)] hover:underline"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {isExpanded 
+                    ? (locale === "ar" ? "إخفاء التفاصيل" : "Hide Details") 
+                    : (locale === "ar" ? "عرض التفاصيل والتعليقات" : "View Details & Comments")}
+                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                
+                {/* Expanded content with full body and comments */}
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+                    <div className="mb-4">
+                      <RichContent html={a.body} />
+                    </div>
+                    <Comments targetType="announcement" targetId={a.id} />
+                  </div>
+                )}
               </div>
             );
           })}

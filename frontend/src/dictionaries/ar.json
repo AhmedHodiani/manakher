@@ -311,8 +311,12 @@
         "announcements": "الإعلانات",
         "materials": "المواد التعليمية",
         "homework": "الواجبات",
-        "quizzes": "الاختبارات",
-        "exams": "جدول الامتحانات"
+        "assessments": "الاختبارات والامتحانات"
+      },
+      "assessments": {
+        "title": "الاختبارات والامتحانات",
+        "tabQuizzes": "الاختبارات التفاعلية",
+        "tabExams": "جدول الامتحانات"
       },
       "announcements": {
         "title": "الإعلانات",

@@ -311,8 +311,12 @@
         "announcements": "Announcements",
         "materials": "Learning Materials",
         "homework": "Homework",
-        "quizzes": "Quizzes",
-        "exams": "Exam Schedule"
+        "assessments": "Assessments"
+      },
+      "assessments": {
+        "title": "Assessments",
+        "tabQuizzes": "Interactive Quizzes",
+        "tabExams": "Exam Schedule"
       },
       "announcements": {
         "title": "Announcements",
