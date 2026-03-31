@@ -220,6 +220,21 @@ export default function AdminExamsPage() {
             {editId ? t.editTitle : t.add}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Title field */}
+            <div>
+              <label className="block text-sm font-semibold text-[var(--color-ink)] mb-1">
+                {t.examTitle || (locale === "ar" ? "عنوان الامتحان" : "Exam Title")}
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+                placeholder={locale === "ar" ? "مثال: امتحان الرياضيات النهائي" : "e.g., Final Math Exam"}
+                className="w-full px-4 py-3 rounded-lg bg-[var(--color-surface-sunken)] border border-[var(--color-border)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[var(--color-ink)] mb-1">
@@ -363,11 +378,14 @@ export default function AdminExamsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-[var(--color-ink)]">{subjectName}</h4>
+                      <h4 className="font-bold text-[var(--color-ink)]">{exam.title || subjectName}</h4>
                       <Badge variant="accent">{getExamTypeLabel(exam.exam_type)}</Badge>
-                      <span className="text-sm text-[var(--color-ink-secondary)]">
-                        {sectionName}
-                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-wrap text-sm text-[var(--color-ink-secondary)]">
+                      <span>{subjectName}</span>
+                      <span>·</span>
+                      <span>{sectionName}</span>
                     </div>
 
                     <div className="space-y-1 text-sm text-[var(--color-ink-secondary)]">
