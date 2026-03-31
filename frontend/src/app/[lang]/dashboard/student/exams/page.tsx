@@ -130,10 +130,16 @@ export default function StudentExamsPage() {
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-bold text-[var(--color-ink)]">
-                              {subjectName}
+                              {exam.title || subjectName}
                             </h4>
                             <Badge variant="accent">{getExamTypeLabel(exam.exam_type)}</Badge>
                           </div>
+                          
+                          {subjectName && (
+                            <p className="text-sm font-medium text-[var(--color-ink-secondary)]">
+                              {subjectName}
+                            </p>
+                          )}
                           
                           <div className="space-y-1 text-sm text-[var(--color-ink-secondary)]">
                             <div className="flex items-center gap-2">
