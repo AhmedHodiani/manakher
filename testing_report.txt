@@ -1,0 +1,40 @@
+Round 1:
+
+Student:
+- the comment still causing an error:
+"## Error Type
+Console ClientResponseError 400
+
+## Error Message
+Something went wrong while processing your request.
+
+Next.js version: 16.2.1 (Turbopack)
+"...
+- the materials still causing error when opening them:
+"## Error Type
+Console ClientResponseError 400
+
+## Error Message
+Something went wrong while processing your request.
+
+Next.js version: 16.2.1 (Turbopack)
+"...
+- Why is there two separate pages for the exams and quizes, that's confusing, combine them together, and make a section for each instead of pages...
+- 
+
+Admin:
+- the exam creation is doing great on their end, and visible to the student too.
+
+Teacher:
+- All good for now.
+
+############################################################
+
+Round 2:
+
+Teacher:
+- the students comments aren't visible there, WHY?
+
+############################################################
+
+Round 3: All good, great job!
