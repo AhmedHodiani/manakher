@@ -432,9 +432,26 @@ It contains a short and clear to-do list of milestones.
   - Admin role now has complete superadmin capabilities as specified in requirements
   - User management and academic structuring were already implemented in M4 - no duplication needed
   - Content moderation requires admin to have delete permissions on all collections - PocketBase API rules should allow `@request.auth.role = "admin"` to delete any record
-  - Platform monitoring page uses `getList(1, 1)` to efficiently fetch only total counts without loading full data
-  - Settings page uses localStorage for demo purposes - in production this would be a dedicated `platform_settings` collection in PocketBase
-  - The moderation page provides unified view of ALL platform content, making it easy for admin to oversee and moderate everything from one place
+   - Platform monitoring page uses `getList(1, 1)` to efficiently fetch only total counts without loading full data
+   - Settings page uses localStorage for demo purposes - in production this would be a dedicated `platform_settings` collection in PocketBase
+   - The moderation page provides unified view of ALL platform content, making it easy for admin to oversee and moderate everything from one place
+
+**Iteration 2** (2026-04-01) — Content-based RTL detection for quiz content:
+- **What was done:**
+  - **Created `text-direction.ts` utility module** with three functions:
+    - `containsArabic(text)`: Detects if string contains any Arabic Unicode characters (including Arabic, Arabic Supplement, Extended-A, and Presentation Forms)
+    - `getTextDirection(text)`: Returns 'rtl' if Arabic found, 'ltr' otherwise
+    - `getDominantTextDirection(text)`: Counts Arabic vs non-Arabic characters, returns 'rtl' if >10% Arabic (for mixed-language content)
+  - **Applied dynamic `dir` attribute to quiz interfaces** in both pages:
+    - `student/assessments/page.tsx`: Question text and each option button now use `dir={getTextDirection(content)}`
+    - `student/quizzes/page.tsx`: Same treatment applied
+  - **User feedback addressed:** Enables teachers to mix Arabic and English content in a single quiz. Each question and option displays with correct text direction based on its content language, independent of the page locale.
+  - Build passes: 52 pages, zero TypeScript errors.
+  - Committed: "feat: Add content-based RTL detection for quiz questions and options"
+- **Issues/Lessons:**
+  - Arabic text detection needs to account for multiple Unicode ranges beyond basic Arabic block (e.g., Arabic Supplement U+0750-U+077F, Extended-A U+08A0-U+08FF, Presentation Forms)
+  - Using `dir` HTML attribute on specific elements allows local direction override without affecting page-level direction
+  - The 10% threshold in `getDominantTextDirection` balances edge cases where mostly-English text has a few Arabic words
 
 ### [NOT_STARTED] Milestone 9: Final Polish & Handoff
 - End-to-end testing of all user journeys (Admin, Teacher, Student).
