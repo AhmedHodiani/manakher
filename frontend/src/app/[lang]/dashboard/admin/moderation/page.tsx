@@ -283,7 +283,7 @@ export default function ModerationPage() {
                     </div>
                     {isExpanded && (
                       <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)] px-5 py-4">
-                        <RichContent content={mat.body} />
+                        <RichContent html={mat.body} />
                       </div>
                     )}
                   </div>
@@ -361,7 +361,7 @@ export default function ModerationPage() {
                     </div>
                     {isExpanded && (
                       <div className="border-t border-[var(--color-border-subtle)] bg-[var(--color-surface-sunken)] px-5 py-4">
-                        <RichContent content={ann.body} />
+                        <RichContent html={ann.body} />
                       </div>
                     )}
                   </div>
