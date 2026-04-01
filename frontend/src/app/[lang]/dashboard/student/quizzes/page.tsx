@@ -176,9 +176,65 @@ export default function StudentQuizzesPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // ── Monitor quiz close time during taking ──────────────────────────────────
+  useEffect(() => {
+    if (!activeQuiz || completedAttempt) return;
+    
+    const closes = activeQuiz.closes_at ? new Date(activeQuiz.closes_at) : null;
+    if (!closes) return;
+    
+    // Check every 5 seconds if quiz has closed
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (now > closes && !completedAttempt) {
+        clearInterval(interval);
+        alert(locale === "ar" 
+          ? "انتهى وقت الاختبار! سيتم إرسال إجاباتك تلقائياً." 
+          : "Quiz time is up! Your answers will be submitted automatically.");
+        submitQuiz(answers);
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [activeQuiz, completedAttempt, answers, locale]);
+
+  // ── Auto-refresh quiz status every 30 seconds (to update badges) ───────────
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    // Only run when viewing the quiz list (not taking a quiz)
+    if (activeQuiz) return;
+    
+    const interval = setInterval(() => {
+      setTick((t) => t + 1); // Force re-render to update getQuizStatus() results
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [activeQuiz]);
+
   // ── Start quiz ───────────────────────────────────────────────────────────────
 
   async function startQuiz(quiz: Quiz) {
+    // CRITICAL: Enforce open/close time before starting
+    const now = new Date();
+    const opens = quiz.opens_at ? new Date(quiz.opens_at) : null;
+    const closes = quiz.closes_at ? new Date(quiz.closes_at) : null;
+    
+    if (opens && now < opens) {
+      alert(locale === "ar" 
+        ? "هذا الاختبار لم يفتح بعد. يرجى الانتظار حتى وقت الفتح." 
+        : "This quiz is not open yet. Please wait until the opening time.");
+      return;
+    }
+    
+    if (closes && now > closes) {
+      alert(locale === "ar" 
+        ? "انتهى وقت هذا الاختبار. لم يعد بإمكانك المشاركة." 
+        : "This quiz has closed. You can no longer participate.");
+      // Refresh the quiz list to update status badges
+      load();
+      return;
+    }
+    
     setLoadingQuestions(true);
     setActiveQuiz(quiz);
     setAnswers({});
@@ -192,8 +248,11 @@ export default function StudentQuizzesPage() {
         sort: "order,created",
       });
       setQuestions(qs);
-      // Set end time = now + time_limit minutes
-      setQuizEndTime(new Date(Date.now() + quiz.time_limit * 60 * 1000));
+      
+      // Calculate end time: minimum of (time_limit from now) and (quiz closes_at)
+      const timeLimitEnd = new Date(Date.now() + quiz.time_limit * 60 * 1000);
+      const effectiveEndTime = closes && closes < timeLimitEnd ? closes : timeLimitEnd;
+      setQuizEndTime(effectiveEndTime);
     } catch (e) {
       console.error(e);
       setActiveQuiz(null);

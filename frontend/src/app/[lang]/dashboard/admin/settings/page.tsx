@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/context/locale-context";
+import { getPocketBase } from "@/lib/pocketbase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings as SettingsIcon, Check } from "lucide-react";
+import { Settings as SettingsIcon, Check, Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
   const { dict, locale } = useLocale();
@@ -19,51 +20,83 @@ export default function SettingsPage() {
   const [enableQuizzes, setEnableQuizzes] = useState(true);
   
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings from PocketBase on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const settings = localStorage.getItem("platform_settings");
-      if (settings) {
-        try {
-          const parsed = JSON.parse(settings);
-          setSchoolNameAr(parsed.schoolNameAr || "مدرسة مناخر الاساسية المؤنثة");
-          setSchoolNameEn(parsed.schoolNameEn || "Manakher Basic Girls' School");
-          setEnableComments(parsed.enableComments !== false);
-          setEnableReactions(parsed.enableReactions !== false);
-          setEnableQuizzes(parsed.enableQuizzes !== false);
-        } catch (e) {
-          console.error("Failed to parse settings:", e);
-        }
-      }
-    }
+    loadSettings();
   }, []);
+
+  async function loadSettings() {
+    try {
+      const pb = getPocketBase();
+      const records = await pb.collection("platform_settings").getFullList();
+      
+      records.forEach(record => {
+        if (record.key === "school_info" && record.value) {
+          setSchoolNameAr(record.value.schoolNameAr || "مدرسة مناخر الاساسية المؤنثة");
+          setSchoolNameEn(record.value.schoolNameEn || "Manakher Basic Girls' School");
+          setEnableComments(record.value.enableComments !== false);
+          setEnableReactions(record.value.enableReactions !== false);
+          setEnableQuizzes(record.value.enableQuizzes !== false);
+        }
+      });
+    } catch (e) {
+      console.error("Failed to load settings:", e);
+      // Fallback to defaults
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function saveSettings() {
     setSaving(true);
     
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    // Save to localStorage
-    const settings = {
-      schoolNameAr,
-      schoolNameEn,
-      enableComments,
-      enableReactions,
-      enableQuizzes,
-    };
-    
-    if (typeof window !== "undefined") {
-      localStorage.setItem("platform_settings", JSON.stringify(settings));
+    try {
+      const pb = getPocketBase();
+      const settingsData = {
+        schoolNameAr,
+        schoolNameEn,
+        enableComments,
+        enableReactions,
+        enableQuizzes,
+      };
+
+      // Try to update existing record
+      try {
+        const records = await pb.collection("platform_settings").getFullList({
+          filter: `key = "school_info"`,
+        });
+        
+        if (records.length > 0) {
+          // Update existing
+          await pb.collection("platform_settings").update(records[0].id, {
+            value: settingsData,
+          });
+        } else {
+          // Create new
+          await pb.collection("platform_settings").create({
+            key: "school_info",
+            value: settingsData,
+          });
+        }
+      } catch (e) {
+        // If no records found, create new
+        await pb.collection("platform_settings").create({
+          key: "school_info",
+          value: settingsData,
+        });
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      console.error("Failed to save settings:", e);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    
-    setSaving(false);
-    setSaved(true);
-    
-    // Hide success message after 3 seconds
-    setTimeout(() => setSaved(false), 3000);
   }
 
   return (
@@ -76,8 +109,14 @@ export default function SettingsPage() {
         <p className="text-sm text-[var(--color-ink-secondary)] mt-1">{t.subtitle}</p>
       </div>
 
-      {/* General Settings */}
-      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] p-6 space-y-6">
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--color-accent)]" />
+        </div>
+      ) : (
+        <>
+          {/* General Settings */}
+          <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] p-6 space-y-6">
         <div className="flex items-center gap-3">
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
@@ -169,6 +208,7 @@ export default function SettingsPage() {
       {/* Save Button */}
       <div className="flex items-center gap-3">
         <Button variant="primary" onClick={saveSettings} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {saving ? common.loading : t.saveChanges}
         </Button>
         {saved && (
@@ -178,6 +218,8 @@ export default function SettingsPage() {
           </span>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -99,15 +99,16 @@ export default function FileUpload({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
         className={`flex items-center justify-between rounded-[var(--radius-md)] border-2 border-[var(--color-border)] 
         bg-[var(--color-surface-sunken)] px-4 py-3 text-sm text-[var(--color-ink)] 
-        hover:bg-[var(--color-surface-hover)] transition-colors 
+        hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer
         ${isHovering ? "border-[var(--color-accent)] bg-[var(--color-surface-card)]" : ""}
-        ${disabled ? "opacity-50 pointer-events-none" : ""}
+        ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}
         `}
       >
-        <div className="flex items-center gap-3">
-          <Paperclip className="h-4 w-4" />
+        <div className="flex items-center gap-3 flex-1">
+          <Paperclip className="h-4 w-4 shrink-0" />
           <span>{fileName || "Click to upload or drag & drop"}</span>
         </div>
         <input
@@ -118,9 +119,6 @@ export default function FileUpload({
           className="hidden"
           disabled={disabled}
         />
-        <Button variant="ghost" size="icon" onClick={() => inputRef.current?.click()} disabled={disabled}>
-          <Paperclip className="h-3 w-3" />
-        </Button>
       </div>
       
       {fileError && (

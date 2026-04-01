@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/context/locale-context";
 import pb from "@/lib/pocketbase";
-import { GraduationCap, Plus, Trash2, Pencil, Loader2, X, ChevronDown } from "lucide-react";
+import { GraduationCap, Plus, Trash2, Pencil, Loader2, X, ChevronDown, Search } from "lucide-react";
 
 interface Teacher {
   id: string;
@@ -98,6 +98,7 @@ export default function TeachersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
 
   async function load() {
@@ -206,6 +207,16 @@ export default function TeachersPage() {
   const getSectionLabel = (id: string) => sectionOptions.find(o => o.id === id)?.label ?? id;
   const getSubjectLabel = (id: string) => subjectOptions.find(o => o.id === id)?.label ?? id;
 
+  // Filter teachers by search query
+  const filteredTeachers = teachers.filter(t => {
+    const query = searchQuery.toLowerCase();
+    return (
+      t.name_ar.toLowerCase().includes(query) ||
+      t.name_en.toLowerCase().includes(query) ||
+      t.email.toLowerCase().includes(query)
+    );
+  });
+
   const inputCls = "w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] px-3 py-2 text-sm placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]";
 
   return (
@@ -227,6 +238,20 @@ export default function TeachersPage() {
           {t.add}
         </button>
       </div>
+
+      {/* Search bar */}
+      {teachers.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-ink-secondary)]" />
+          <input
+            type="text"
+            placeholder={locale === "ar" ? "ابحث عن مدرس..." : "Search teachers..."}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-sunken)] pl-10 pr-3 py-2 text-sm placeholder:text-[var(--color-ink-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+          />
+        </div>
+      )}
 
       {/* Create / Edit form */}
       {showForm && (
@@ -297,9 +322,11 @@ export default function TeachersPage() {
         <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[var(--color-accent)]" /></div>
       ) : teachers.length === 0 ? (
         <p className="py-16 text-center text-sm text-[var(--color-ink-disabled)]">{t.empty}</p>
+      ) : filteredTeachers.length === 0 ? (
+        <p className="py-16 text-center text-sm text-[var(--color-ink-secondary)]">{locale === "ar" ? "لم يتم العثور على نتائج" : "No results found"}</p>
       ) : (
         <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] overflow-hidden shadow-[var(--shadow-xs)] divide-y divide-[var(--color-border-subtle)]">
-          {teachers.map(teacher => {
+          {filteredTeachers.map(teacher => {
             const expandedSections = teacher.expand?.sections ?? [];
             const expandedSubjects = teacher.expand?.subjects ?? [];
             return (

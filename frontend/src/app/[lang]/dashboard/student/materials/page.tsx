@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
-import { BookOpen, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, ExternalLink, Paperclip } from "lucide-react";
 import { RichContent } from "@/components/ui/rich-content";
 import { Comments } from "@/components/ui/comments";
 
@@ -20,9 +20,11 @@ interface Material {
   title: string;
   body: string;
   link_url: string;
+  attachment?: string;
   section: string;
   subject: string;
   created: string;
+  collectionId: string;
   expand?: {
     subject?: Subject;
     teacher?: { name_ar: string; name_en: string };
@@ -165,6 +167,17 @@ export default function StudentMaterialsPage() {
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         {t.viewLink}
+                      </a>
+                    )}
+                    {mat.attachment && (
+                      <a
+                        href={`${getPocketBase().baseURL}/api/files/${mat.collectionId}/${mat.id}/${mat.attachment}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-accent)] hover:underline"
+                      >
+                        <Paperclip className="h-3.5 w-3.5" />
+                        {mat.attachment}
                       </a>
                     )}
                     

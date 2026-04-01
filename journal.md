@@ -458,3 +458,23 @@ It contains a short and clear to-do list of milestones.
 - UI/UX refinements.
 - Final deployment.
 
+#### Iteration Log
+
+**Iteration 1** (2026-04-01) — M9 Testing Feedback Fixes:
+- **What was done:**
+  - **Fixed PocketBase migration file:** Updated `1775277820_create_platform_settings.js` to use correct PocketBase v0.23+ API (`app.save()` instead of `db.createCollection()`).
+  - **Fixed student materials page:** Added `attachment` field to Material interface and added display of file attachments with Paperclip icon and download link. Students can now see and download uploaded files.
+  - **Added quiz submission counter:** Student overview page now shows "X/Y" format stat card for quizzes (e.g., "2/5" = 2 quizzes completed out of 5 total). Added `quizzes` key to student stats dictionaries in both ar.json and en.json.
+  - **CRITICAL FIX - Quiz open/close time enforcement:**
+    - Updated `startQuiz()` function in both `assessments/page.tsx` and `quizzes/page.tsx` to validate open/close times before allowing quiz start
+    - If quiz hasn't opened yet, shows alert and blocks start
+    - If quiz has closed, shows alert, blocks start, and refreshes the quiz list
+    - Timer now respects quiz close time - if quiz closes before time_limit, the effective end time is the close time
+    - Added periodic monitoring (every 5 seconds) during quiz-taking to auto-submit if quiz closes while student is taking it
+    - Added periodic status refresh (every 30 seconds) on quiz list view to update status badges automatically
+  - Build passes: 52 pages, zero TypeScript errors.
+- **Issues/Lessons:**
+  - Quiz time enforcement requires multiple layers: validation at start, monitoring during taking, and auto-refresh of status badges
+  - PocketBase migration API changed significantly in v0.23+ - always check existing migrations for correct syntax pattern
+  - Always verify attachment/file fields are included in interface definitions and displayed in both teacher and student views
+

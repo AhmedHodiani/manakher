@@ -6,7 +6,7 @@ import { useLocale } from "@/context/locale-context";
 import { StatCard } from "@/components/ui/stat-card";
 import { getDisplayName } from "@/lib/auth";
 import { getPocketBase } from "@/lib/pocketbase";
-import { BookOpen, FileText, Send, Bell } from "lucide-react";
+import { BookOpen, FileText, Send, Bell, ClipboardList } from "lucide-react";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -18,6 +18,7 @@ export default function StudentDashboard() {
   const [hwCount, setHwCount] = useState<number | string>("—");
   const [submittedCount, setSubmittedCount] = useState<number | string>("—");
   const [announcementCount, setAnnouncementCount] = useState<number | string>("—");
+  const [quizSubmissions, setQuizSubmissions] = useState<string>("—");
 
   useEffect(() => {
     if (!user) return;
@@ -29,6 +30,7 @@ export default function StudentDashboard() {
       setHwCount(0);
       setAnnouncementCount(0);
       setSubmittedCount(0);
+      setQuizSubmissions("0/0");
       return;
     }
 
@@ -64,6 +66,16 @@ export default function StudentDashboard() {
         setSubjectCount(unique.size);
       })
       .catch(() => setSubjectCount("—"));
+
+    // Count quiz submissions in X/Y format
+    Promise.all([
+      pb.collection("quizzes").getList(1, 1, { filter: sectionFilter }),
+      pb.collection("quiz_attempts").getList(1, 1, { filter: `student = "${user.id}"` })
+    ])
+      .then(([quizzes, attempts]) => {
+        setQuizSubmissions(`${attempts.totalItems}/${quizzes.totalItems}`);
+      })
+      .catch(() => setQuizSubmissions("—"));
   }, [user]);
 
   return (
@@ -99,6 +111,7 @@ export default function StudentDashboard() {
           <StatCard icon={<BookOpen />} label={t.stats.subjects} value={subjectCount} />
           <StatCard icon={<FileText />} label={t.stats.homework} value={hwCount} />
           <StatCard icon={<Send />} label={t.stats.submitted} value={submittedCount} />
+          <StatCard icon={<ClipboardList />} label={t.stats.quizzes} value={quizSubmissions} />
           <StatCard icon={<Bell />} label={t.stats.announcements} value={announcementCount} />
         </div>
       </div>
