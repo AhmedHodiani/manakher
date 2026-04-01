@@ -453,7 +453,7 @@ It contains a short and clear to-do list of milestones.
   - Using `dir` HTML attribute on specific elements allows local direction override without affecting page-level direction
   - The 10% threshold in `getDominantTextDirection` balances edge cases where mostly-English text has a few Arabic words
 
-### [NOT_STARTED] Milestone 9: Final Polish & Handoff
+### [INPROGRESS] Milestone 9: Final Polish & Handoff
 - End-to-end testing of all user journeys (Admin, Teacher, Student).
 - UI/UX refinements.
 - Final deployment.
