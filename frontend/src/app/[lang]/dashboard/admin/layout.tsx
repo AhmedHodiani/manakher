@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/context/locale-context";
-import { LayoutGrid, BookOpen, Users, GraduationCap, Layers, Calendar } from "lucide-react";
+import {
+  LayoutGrid, BookOpen, Users, GraduationCap, Layers, Calendar,
+  Shield, Activity, Settings
+} from "lucide-react";
 import type { ReactNode } from "react";
 
-type NavKey = "overview" | "sections" | "subjects" | "teachers" | "students" | "exams";
+type NavKey = "overview" | "sections" | "subjects" | "teachers" | "students" | "exams" | "moderation" | "monitoring" | "settings";
 
 interface NavItem {
   key: NavKey;
@@ -20,12 +23,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const t = dict.dashboard.admin.nav;
 
   const navItems: NavItem[] = [
-    { key: "overview",  href: `/${locale}/dashboard/admin`,          icon: <LayoutGrid className="h-4 w-4" /> },
-    { key: "sections",  href: `/${locale}/dashboard/admin/sections`, icon: <Layers className="h-4 w-4" /> },
-    { key: "subjects",  href: `/${locale}/dashboard/admin/subjects`, icon: <BookOpen className="h-4 w-4" /> },
-    { key: "teachers",  href: `/${locale}/dashboard/admin/teachers`, icon: <GraduationCap className="h-4 w-4" /> },
-    { key: "students",  href: `/${locale}/dashboard/admin/students`, icon: <Users className="h-4 w-4" /> },
-    { key: "exams",     href: `/${locale}/dashboard/admin/exams`,    icon: <Calendar className="h-4 w-4" /> },
+    { key: "overview",    href: `/${locale}/dashboard/admin`,             icon: <LayoutGrid className="h-4 w-4" /> },
+    { key: "sections",    href: `/${locale}/dashboard/admin/sections`,    icon: <Layers className="h-4 w-4" /> },
+    { key: "subjects",    href: `/${locale}/dashboard/admin/subjects`,    icon: <BookOpen className="h-4 w-4" /> },
+    { key: "teachers",    href: `/${locale}/dashboard/admin/teachers`,    icon: <GraduationCap className="h-4 w-4" /> },
+    { key: "students",    href: `/${locale}/dashboard/admin/students`,    icon: <Users className="h-4 w-4" /> },
+    { key: "exams",       href: `/${locale}/dashboard/admin/exams`,       icon: <Calendar className="h-4 w-4" /> },
+    { key: "moderation",  href: `/${locale}/dashboard/admin/moderation`,  icon: <Shield className="h-4 w-4" /> },
+    { key: "monitoring",  href: `/${locale}/dashboard/admin/monitoring`,  icon: <Activity className="h-4 w-4" /> },
+    { key: "settings",    href: `/${locale}/dashboard/admin/settings`,    icon: <Settings className="h-4 w-4" /> },
   ];
 
   return (

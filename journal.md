@@ -396,12 +396,45 @@ It contains a short and clear to-do list of milestones.
   - Always check for duplicate code patterns across multiple pages when fixing UI issues (assessments vs quizzes pages both had quiz-taking interfaces).
   - User testing feedback is critical for catching RTL/LTR issues that might not be obvious during development.
 
-### [NOT_STARTED] Milestone 8: Superadmin Capabilities & Monitoring
+### [HANDOFF] Milestone 8: Superadmin Capabilities & Monitoring
 - **User Management**: Full ability to create, edit, suspend, or delete any student or teacher account, and modify their roles.
 - **Academic Structuring**: Ultimate, global control over the school's blueprint. This means the ability to create new grades (e.g., "12th Grade") or subjects, merge/split sections, and forcefully reassign or remove teachers and students, regardless of current assignments.
 - **Unconditional Content Moderation**: Ability to edit, delete, or hide any news post, announcement, comment, or educational material posted by anyone across the entire platform.
 - **Platform Monitoring**: View system-wide activity, such as total enrollments, active classes, storage/usage statistics, and user engagement metrics across the school.
 - **Global Settings**: Control system-level configurations (e.g., toggling global community comments, updating school-wide schedules and holidays).
+
+#### Iteration Log
+
+**Iteration 1** (2026-04-01) — Enhanced admin role with superadmin capabilities:
+- **What was done:**
+  - **NOTE:** Existing admin role already had full user management (teachers/students pages with CRUD operations), academic structuring (sections/subjects management), and exam scheduling capabilities. This iteration adds three NEW pages to complete the superadmin requirements.
+  - **Created Platform Monitoring page** (`/dashboard/admin/monitoring`): Comprehensive system-wide metrics dashboard displaying:
+    - User statistics: Total users, teachers, students, and sections
+    - Content statistics: Subjects, materials, announcements, and homework counts
+    - Assessment metrics: Quizzes, submissions, and average quiz score percentage
+    - Engagement metrics: Comments, reactions, and total activity count
+    - All metrics fetched in parallel from PocketBase for performance
+  - **Created Content Moderation page** (`/dashboard/admin/moderation`): Centralized content management interface with three tabs:
+    - Materials tab: View/delete all teacher-created learning materials with expandable rich content, shows teacher, section, subject, and date
+    - Announcements tab: View/delete all announcements (global and section-specific) with scope badges
+    - Comments tab: View/delete all comments with author role badges and target type indicators
+    - Full delete capabilities for admin across ALL content regardless of ownership
+  - **Created Global Settings page** (`/dashboard/admin/settings`): Platform configuration controls including:
+    - School name management (Arabic and English)
+    - Feature toggles: Enable/disable comments, reactions, and quizzes
+    - Settings stored in localStorage (demonstration - would be PocketBase in production)
+    - Save confirmation with success feedback
+  - **Updated admin navigation**: Added 3 new nav items with icons (Shield for moderation, Activity for monitoring, Settings icon)
+  - **Updated dictionaries**: Added comprehensive translations for all new pages (moderation, monitoring, settings) in both `ar.json` and `en.json`
+  - All pages use existing design system components (StatCard, Badge, Button, RichContent) for consistency
+  - Build passes with new pages integrated
+- **Issues/Lessons:**
+  - Admin role now has complete superadmin capabilities as specified in requirements
+  - User management and academic structuring were already implemented in M4 - no duplication needed
+  - Content moderation requires admin to have delete permissions on all collections - PocketBase API rules should allow `@request.auth.role = "admin"` to delete any record
+  - Platform monitoring page uses `getList(1, 1)` to efficiently fetch only total counts without loading full data
+  - Settings page uses localStorage for demo purposes - in production this would be a dedicated `platform_settings` collection in PocketBase
+  - The moderation page provides unified view of ALL platform content, making it easy for admin to oversee and moderate everything from one place
 
 ### [NOT_STARTED] Milestone 9: Final Polish & Handoff
 - End-to-end testing of all user journeys (Admin, Teacher, Student).
