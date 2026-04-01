@@ -381,6 +381,21 @@ It contains a short and clear to-do list of milestones.
   - PocketBase `quiz_questions.options` is stored as a JSON array of strings — the frontend must parse it correctly (PB SDK returns it already parsed as a JS array).
   - Quiz status logic (upcoming/open/closed) must be computed client-side at render time, not stored in DB — avoids stale state issues.
 
+**Iteration 2** (2026-04-01) — Round 3 testing feedback fixes:
+- **What was done:**
+  - **Fixed: Quiz creation without questions validation.** User feedback: "The teacher must add at least one question to the interactive quiz... to successfully create it." Added confirmation dialog when creating a new quiz (not editing) warning that at least one question must be added. After saving new quiz, automatically expands the questions panel and opens the "Add Question" form to guide teacher workflow. This ensures teachers are immediately prompted to add questions after creating quiz metadata.
+  - **Fixed: RTL alignment for quiz answer options.** User feedback: "The alignment of the quiz must be fully RTL!!!!!!!!!!!!!! The answers are not!!!!!!!!!!!!! Fix the WHOLE QUIZ." Root cause: Answer option buttons used `text-start` with inline text+span structure that didn't properly respect RTL flow. Changed structure to use flexbox layout (`flex items-center gap-2`) with:
+    - Letter prefix (A/B/C/D) as `shrink-0` leading element
+    - Answer text wrapped in separate span with `text-start flex-1` for proper text alignment
+    - This ensures the layout flips correctly in RTL (letter stays on right, text flows right-to-left)
+  - Applied fix to BOTH quiz interfaces:
+    - `student/assessments/page.tsx` (lines 408-427) - Combined assessments page quiz-taking interface
+    - `student/quizzes/page.tsx` (lines 328-347) - Standalone quizzes page quiz-taking interface
+- **Issues/Lessons:**
+  - When using `text-start` in RTL contexts, ensure the containing element uses flexbox for proper directional flow - inline text doesn't automatically reorder child elements.
+  - Always check for duplicate code patterns across multiple pages when fixing UI issues (assessments vs quizzes pages both had quiz-taking interfaces).
+  - User testing feedback is critical for catching RTL/LTR issues that might not be obvious during development.
+
 ### [NOT_STARTED] Milestone 8: Superadmin Capabilities & Monitoring
 - **User Management**: Full ability to create, edit, suspend, or delete any student or teacher account, and modify their roles.
 - **Academic Structuring**: Ultimate, global control over the school's blueprint. This means the ability to create new grades (e.g., "12th Grade") or subjects, merge/split sections, and forcefully reassign or remove teachers and students, regardless of current assignments.

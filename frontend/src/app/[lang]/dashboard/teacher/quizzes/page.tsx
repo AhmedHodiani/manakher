@@ -181,17 +181,39 @@ export default function TeacherQuizzesPage() {
 
   async function saveQuiz() {
     if (!user || !quizForm.title || !quizForm.section || !quizForm.subject || !quizForm.time_limit) return;
+    
+    // If creating a new quiz, warn that questions are required
+    if (!editingQuizId) {
+      const confirmMsg = locale === "ar" 
+        ? "تذكري: يجب إضافة سؤال واحد على الأقل بعد حفظ الاختبار. هل تريدين المتابعة؟"
+        : "Remember: You must add at least one question after saving the quiz. Continue?";
+      if (!confirm(confirmMsg)) return;
+    }
+    
     setSavingQuiz(true);
     const pb = getPocketBase();
     try {
       const payload = { ...quizForm, teacher: user.id };
+      let quizId: string;
+      
       if (editingQuizId) {
         await pb.collection("quizzes").update(editingQuizId, payload);
+        quizId = editingQuizId;
       } else {
-        await pb.collection("quizzes").create(payload);
+        const newQuiz = await pb.collection("quizzes").create(payload);
+        quizId = newQuiz.id;
       }
+      
       setShowQuizForm(false);
       await load();
+      
+      // If new quiz, auto-expand questions panel and prompt to add question
+      if (!editingQuizId) {
+        setExpandedQuiz(quizId);
+        setExpandedPanel("questions");
+        setQuestions([]);
+        setShowQuestionForm(true);
+      }
     } catch (e) {
       console.error(e);
     } finally {

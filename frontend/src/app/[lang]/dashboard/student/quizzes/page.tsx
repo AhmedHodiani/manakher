@@ -333,14 +333,14 @@ export default function StudentQuizzesPage() {
                     key={oi}
                     onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: oi }))}
                     className={[
-                      "w-full text-start px-4 py-3 rounded-[var(--radius-lg)] border transition-all text-sm font-semibold",
+                      "w-full flex items-center gap-2 px-4 py-3 rounded-[var(--radius-lg)] border transition-all text-sm font-semibold",
                       selected
                         ? "border-[var(--color-role-student-bold)] bg-[var(--color-role-student-bg)] text-[var(--color-role-student-bold)]"
                         : "border-[var(--color-border)] bg-[var(--color-surface-sunken)] text-[var(--color-ink)] hover:border-[var(--color-role-student-bold)] hover:bg-[var(--color-role-student-bg)]",
                     ].join(" ")}
                   >
-                    <span className="me-2 font-bold">{String.fromCharCode(65 + oi)}.</span>
-                    {opt}
+                    <span className="font-bold shrink-0">{String.fromCharCode(65 + oi)}.</span>
+                    <span className="text-start flex-1">{opt}</span>
                   </button>
                 );
               })}
