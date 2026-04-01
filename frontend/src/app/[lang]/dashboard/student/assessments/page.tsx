@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useLocale } from "@/context/locale-context";
 import { getPocketBase } from "@/lib/pocketbase";
+import { getTextDirection } from "@/lib/text-direction";
 import { ClipboardList, Clock, CheckCircle, Lock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -402,7 +403,10 @@ export default function StudentAssessmentsPage() {
 
         {q && (
           <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-card)] p-6 space-y-6">
-            <p className="text-base font-bold text-[var(--color-ink)] leading-relaxed">
+            <p 
+              className="text-base font-bold text-[var(--color-ink)] leading-relaxed"
+              dir={getTextDirection(q.question_text)}
+            >
               {q.question_text}
             </p>
             <div className="space-y-2">
@@ -418,6 +422,7 @@ export default function StudentAssessmentsPage() {
                         ? "border-[var(--color-role-student-bold)] bg-[var(--color-role-student-bg)] text-[var(--color-role-student-bold)]"
                         : "border-[var(--color-border)] bg-[var(--color-surface-sunken)] text-[var(--color-ink)] hover:border-[var(--color-role-student-bold)] hover:bg-[var(--color-role-student-bg)]",
                     ].join(" ")}
+                    dir={getTextDirection(opt)}
                   >
                     <span className="font-bold shrink-0">{String.fromCharCode(65 + oi)}.</span>
                     <span className="text-start flex-1">{opt}</span>
