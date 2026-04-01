@@ -37,4 +37,7 @@ Teacher:
 
 ############################################################
 
-Round 3: All good, great job!
+Round 3:
+
+- The teacher must add least one question to the interactive quiz and decide it's score to successfully create it.
+- The alignment of the quiz must be fully RTL!!!!!!!!!!!!!! The answers are not!!!!!!!!!!!!! Fix the WHOLE QUIZ.
